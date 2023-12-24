@@ -1,5 +1,6 @@
 import re
 from datetime import datetime, timedelta
+import datetime
 import random
 from abc import ABC
 import sqlite3
@@ -90,11 +91,10 @@ class Menu:
 
     def __init__(self):
         self.main_menu_options = ["Управління категоріями витрат та доходів", "Управління рахунками",
-                                  "Управління витратами та доходами", "Пошук", "Вихід"]
+                                  "Управління витратами та доходами", "Вихід"]
         self.cat1 = CategoryOne
         self.cat2 = CategoryTwo
         self.cat3 = CategoryThree
-        self.cat4 = CategoryFour
 
     # functional cycle of the menu, responsible for the operation and calling functions selected by the user
 
@@ -113,18 +113,17 @@ class Menu:
         quit()
 
     def main_menu(self):
-        print("1.{} \n2.{} \n3.{} \n4.{} \n5.{} \nОберіть потрібну цифру: от 1 до 5: "
+        print("1.{} \n2.{} \n3.{} \n4.{} \nОберіть потрібну цифру: от 1 до 4: "
               .format(*self.main_menu_options))
         menu_dict = {
             1: self.cat1().menu_cat1,
             2: self.cat2().menu_cat2,
             3: self.cat3().menu_cat3,
-            4: self.cat4().menu_cat4,
-            5: self.the_end
+            4: self.the_end
         }
         try:
             choice = int(input("Введіть потрібний пункт: "))
-            self.menu_loop(choice, 5, menu_dict, self.main_menu)
+            self.menu_loop(choice, 4, menu_dict, self.main_menu)
         except ValueError:
             print("\nВи ввели неправильне значення. Спробуйте ще раз.\n")
             self.main_menu()
@@ -152,10 +151,6 @@ class Categories(ABC):
                                           "Перевірка витрат/прибутків за певний період",
                                           "Отримання статистики прибутків/витрат за певний період по днях та категоріях",
                                           "Назад\n"]
-
-        # 4 CategoryFour
-        self.search_transactions_op = ["Можливість пошуку категорій, витрат прибутків за категорією",
-                                       "Можливість пошуку прибутку витрати за сумою датою", "Назад\n"]
 
     # displaying menu items of the selected category
     @staticmethod
@@ -714,27 +709,6 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
         while True:
             self.print_subcategory_menu(self.income_expense_management)
             self.menu_universal(6, functional, self.menu_cat3)
-
-
-class CategoryFour(Categories):
-
-    def search_by_category(self):
-        print("welcome to the search_by_category \n Ніхуя НЕМА ТУТ БО ПІШОВ НАХУЙ")
-        pass
-
-    def search_by_amount_date(self):
-        print("welcome to the search_by_amount_date \n Ніхуя НЕМА ТУТ БО ПІШОВ НАХУЙ ")
-        pass
-
-    def menu_cat4(self):
-        functional = {
-            1: self.search_by_category,
-            2: self.search_by_amount_date,
-            3: self.return_to_menu
-        }
-        while True:
-            self.print_subcategory_menu(self.search_transactions_op)
-            self.menu_universal(3, functional, self.menu_cat4)
 
 
 test = Menu()
