@@ -96,7 +96,7 @@ class Menu:
         self.cat3 = CategoryThree
         self.cat4 = CategoryFour
 
-    # функціональний цикл меню, відповідає за роботу та виклик функцій обраних користувачем
+    # functional cycle of the menu, responsible for the operation and calling functions selected by the user
 
     @staticmethod
     def menu_loop(name_var, end, dictionary, menu_name=None):
