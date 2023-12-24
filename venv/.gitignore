@@ -1,0 +1,25 @@
+# created by virtualenv automatically
+*# .gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyz
+*.pyzw
+*.pyc/
+
+# Virtual Environment
+venv/
+
+# Build
+build/
+dist/
+
+# IDE
+.idea/
+
+# Miscellaneous
+*.DS_Store
+Thumbs.db
