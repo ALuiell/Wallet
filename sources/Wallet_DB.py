@@ -4,9 +4,7 @@ import random
 from abc import ABC
 import sqlite3
 
-
 """Version 2.0"""
-
 
 """
                                                 Database TABLE
@@ -69,7 +67,7 @@ class DatabaseManager:
 
 # ----------------------------------------PATH DATABASE FILE----------------------------------------------------
 # database_path = input("Database path: ")
-db = DatabaseManager("F:\\Python\\Wallet\\Wallet.db")
+db = DatabaseManager("F:\\Python\\Wallet\\DB\\Wallet.db")
 db.connect()
 cursor = db.create_cursor()
 
