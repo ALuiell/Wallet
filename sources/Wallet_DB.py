@@ -37,7 +37,6 @@ Name: category name
 
 
 class DatabaseManager:
-
     def __init__(self, database_path):
         self.conn = None
         self.database_path = database_path
@@ -158,7 +157,7 @@ class Categories(ABC):
         self.search_transactions_op = ["Можливість пошуку категорій, витрат прибутків за категорією",
                                        "Можливість пошуку прибутку витрати за сумою датою", "Назад\n"]
 
-    # відображення пунктів меню обраної категорії
+    # displaying menu items of the selected category
     @staticmethod
     def print_subcategory_menu(lst):
         for i, elem in enumerate(lst, start=1):
@@ -167,7 +166,7 @@ class Categories(ABC):
     def return_to_menu(self):
         self.menu.main_menu()
 
-    # перевіряє на тип даних та відправляє у виконання функції menu_loop
+    # checks for data type and sends to the menu_loop function
     def menu_universal(self, num, functional, menu_name):
         try:
             choice = int(input("Оберіть потрібний пункт: "))
@@ -175,7 +174,7 @@ class Categories(ABC):
         except ValueError:
             print("\nВи ввели неправильне значення. Спробуйте ще раз.\n")
 
-    # перевірка правильності номера рахунку
+    # checking the correctness of the account number
     def validate_account_num(self, num):
         if num in lst_accounts:
             return True
@@ -692,7 +691,6 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
         print(f"Також, загальний прибуток за цей період склав {income:,.2f} гривень. ")
         print("Дякую, що користуєтесь нашим сервісом!")
 
-    # {'Їжа': {'12345678': {'09.05.2023': [{'transaction': '+100', 'transaction_id': 'TRX153211'}]}}
     # info about all times expense\income in categories
     def get_statistics(self):
         self.display_all_num()
