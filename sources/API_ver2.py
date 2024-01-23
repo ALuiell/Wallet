@@ -37,20 +37,117 @@ class DatabaseManager:
         finally:
             cursor.close()
 
-    def get_categories(self, cursor):
+    def execute_select(self, query, params=None):
+        cursor = self.create_cursor()
+        try:
+            if params:
+                cursor.execute(query, params)
+            else:
+                cursor.execute(query)
+            return cursor.fetchall()
+        except Exception as e:
+            print(f'Помилка під час виконання запиту SELECT: {str(e)}')
+        finally:
+            cursor.close()
+
+    def select(self, column_name, table_name, where_field=None, where_value=None):
+        """
+        Function to retrieve and display data from a specific column in a table.
+
+        #     Args:
+        #     column_name (str): The name of the column to be retrieved.
+        #     table_name (str): The name of the table from which data will be read.
+        #     where_field (str): The column to use for the WHERE condition (optional).
+        #     where_value: The value to match in the where_field (optional).
+        """
+        if where_field and where_value is not None:
+            query = f"SELECT {column_name} FROM {table_name} WHERE {where_field} = ?"
+            info = self.execute_select(query, (where_value,))
+        else:
+            query = f"SELECT {column_name} FROM {table_name}"
+            info = self.execute_select(query)
+
+        return info
+
+    def create(self, table_name, column_names, values):
+        """
+           Insert data into a table.
+
+           Args:
+               table_name (str): The name of the table where data will be inserted.
+               column_names (str or tuple): A string or tuple containing the column names of the table.
+               values (str or tuple): A string or tuple containing the values to be inserted into the table.
+
+           Example:
+               - For a single-column insertion:
+                 create('Category', "Name", "Pool")
+
+               - For multi-column insertion:
+                 create('User_accounts', ('Number', 'Type', 'Name', 'Balance'),
+                        ('27412281', 'Дебетовий', 'Alexander James Anderson', "0"))
+           """
+        try:
+            if isinstance(column_names, str):
+                # If only one column is provided, use a placeholder for the parameter
+                query = f"INSERT INTO {table_name} ({column_names}) VALUES (?)"
+                self.execute_query(query, (values,))
+
+            else:
+                # For multiple columns, directly use the provided column_names and values
+                query = f"INSERT INTO {table_name} {column_names} VALUES {values}"
+                self.execute_query(query)
+
+            # Commit the changes to the database
+            self.commit()
+        except Exception as e:
+            print(f"Error during data insertion: {e}")
+
+    def update(self, table_name, set_column, set_value, where_column, where_value):
+        """
+        Update records in the specified table.
+
+        :param table_name: Name of the table to update.
+        :param set_column: Column to set.
+        :param set_value: New value for the set_column.
+        :param where_column: Column to use for the WHERE condition.
+        :param where_value: Value to match in the where_column.
+        """
+        try:
+            query = f"UPDATE {table_name} SET {set_column} = {set_value} WHERE {where_column} = {where_value}"
+            self.execute_query(query)
+            self.commit()
+        except Exception as e:
+            print(f"Error during data updation: {e}")
+
+    def delete(self, table_name, field_name, value):
+        """
+        Deletes a record from the specified table where the given column has the specified value.
+
+        :param table_name: The name of the table from which to delete.
+        :param field_name: The field to check for the specified value.
+        :param value: The value to match for deletion.
+        """
+        query = f"DELETE FROM {table_name} WHERE {field_name} = ?"
+        self.execute_query(query, (value,))
+
+    def get_categories(self):
         query = "SELECT Name FROM Category"
         try:
+            cursor = self.create_cursor()
             cursor.execute(query)
             categories = cursor.fetchall()
+            cursor.close()
             return [category[0] for category in categories]
         except sqlite3.Error:
             return "Курсор не створено"
 
-    def get_account_numbers(self, cursor):
+    def get_account_numbers(self):
         query = "SELECT Number FROM User_Accounts"
         try:
+            cursor = self.create_cursor()
             cursor.execute(query)
             numbers = cursor.fetchall()
+            cursor.close()
             return [str(number[0]) for number in numbers]
         except sqlite3.Error:
             return "Курсор не створено"
@@ -69,44 +166,40 @@ class DatabaseManager:
             self.conn.close()
 
 
-class DisplayManager:
-    def __init__(self):
-        pass
+class BASE:
+    class DisplayManager:
+        def __init__(self):
+            pass
 
+    class Users:
+        def __init__(self):
+            pass
 
-class Users:
-    def __init__(self):
-        pass
+        def add_user(self):
+            pass
 
-    def add_user(self):
-        pass
+        def update_user_info(self):
+            pass
 
-    def update_user_info(self):
-        pass
+        def delete_user(self):
+            pass
 
-    def delete_user(self):
-        pass
+    class CategoryManager:
+        def __init__(self):
+            pass
 
+        def add_category(self):
+            pass
 
-class CategoryManager:
+        def update_category(self):
+            pass
 
-    def __init__(self):
-        pass
+        def delete_category(self):
+            pass
 
-    def add_category(self):
-        pass
+    class TransactionManager(DatabaseManager):
+        def add_transaction(self):
+            pass
 
-    def update_category(self):
-        pass
-
-    def delete_category(self):
-        pass
-
-
-class TransactionManager(DatabaseManager):
-
-    def add_transaction(self):
-        pass
-
-    def delete_transaction(self):
-        pass
+        def delete_transaction(self):
+            pass
