@@ -599,8 +599,7 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
         transfer_id = self.generate_transaction_id()
         date1 = self.generate_random_date()
         category = "Перекази"
-        cursor.execute("SELECT Balance FROM User_Accounts WHERE Number = {}".format(from_num1))
-        balance_num1 = cursor.fetchall()
+        balance_num1 = api.select("Balance", "User_Accounts", "Number", from_num1)
         if int(balance_num1[0][0]) != 0:
             while True:
                 amount = float(input("Введіть суму для переводу: "))
