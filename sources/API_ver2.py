@@ -50,7 +50,7 @@ class DatabaseManager:
         finally:
             cursor.close()
 
-    def select(self, column_name, table_name, where_field=None, where_value=None):
+    def select(self, column_name, table_name, where_field=None, where_value=None, start_date=None, end_date=None):
         """
         Function to retrieve and display data from a specific column in a table.
 
@@ -76,19 +76,19 @@ class DatabaseManager:
 
 
         """
-    
-        if isinstance(column_name, tuple):
-            query = f'SELECT {column_name[0]}, {column_name[1]} FROM {table_name}'
-            info = self.execute_select(query)
-
-        elif where_field and where_value is not None:
-            query = f"SELECT {column_name} FROM {table_name} WHERE {where_field} = ?"
-            info = self.execute_select(query, (where_value,))
-
+        if start_date and end_date is not None:
+            query = f"SELECT {column_name} FROM {table_name} WHERE {where_field} = ? AND TransactionDate BETWEEN ? AND ?"
+            info = self.execute_select(query, (where_value, start_date, end_date))
         else:
-            query = f"SELECT {column_name} FROM {table_name}"
-            print("3")
-            info = self.execute_select(query)
+            if isinstance(column_name, tuple):
+                query = f'SELECT {column_name[0]}, {column_name[1]} FROM {table_name}'
+                info = self.execute_select(query)
+            elif where_field and where_value is not None:
+                query = f"SELECT {column_name} FROM {table_name} WHERE {where_field} = ?"
+                info = self.execute_select(query, (where_value,))
+            else:
+                query = f"SELECT {column_name} FROM {table_name}"
+                info = self.execute_select(query)
 
         return info
 

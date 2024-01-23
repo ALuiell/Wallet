@@ -572,8 +572,9 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
         account_num = self.input_num()
         if self.display_transactions(account_num):
             transaction_id = self.input_id()
-            cursor.execute("SELECT * FROM TransactionAll WHERE TransactionID = ?", (transaction_id,))
-            list_transaction_del = cursor.fetchall()
+            # cursor.execute("SELECT * FROM TransactionAll WHERE TransactionID = ?", (transaction_id,))
+            # list_transaction_del = cursor.fetchall()
+            list_transaction_del = api.select("*", "TransactionAll", "TransactionID", transaction_id)
             for elem in list_transaction_del:
                 if elem[1] == "Витрата":
                     cursor.execute("UPDATE User_Accounts SET Balance = Balance + ? WHERE Number = ? ",
@@ -610,9 +611,6 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
 
             # add the new transaction to the DB in Table | TransactionAll | Transaction_Transfer
             if int(balance_num1[0][0]) > amount:
-                # Начать транзакцию
-                cursor.execute('BEGIN TRANSACTION')
-
                 # INSERT DATA IN TransactionAll FROM_NUM
                 cursor.execute(
                     'INSERT INTO TransactionAll (Number, Type, Category, TransactionDate, TransactionID, Amount) VALUES'
@@ -654,10 +652,7 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
         start_date, end_date = self.validate_date_input()
         income = 0
         expense = 0
-        cursor.execute(
-            "SELECT * FROM TransactionAll WHERE Number = ? AND TransactionDate BETWEEN ? AND ?",
-            (num, start_date, end_date))
-        list_transaction = cursor.fetchall()
+        list_transaction = api.select("*", "TransactionAll", "Number", num, start_date, end_date)
         for elem in list_transaction:
             if elem[1] == "Дохід":
                 income += elem[5]
