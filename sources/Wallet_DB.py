@@ -2,9 +2,9 @@ import re
 from datetime import datetime, timedelta
 import random
 from abc import ABC
-import sqlite3
+from sources import API_ver2
 
-"""Version 2.0"""
+"""Version 3.0"""
 
 """
                                                 Database TABLE
@@ -33,59 +33,20 @@ Category Table
 Name: category name
 """
 
-"""Сделать API для коннекта с DB"""
-
-
-class DatabaseManager:
-    def __init__(self, database_path):
-        self.conn = None
-        self.database_path = database_path
-
-    def connect(self):
-        try:
-            self.conn = sqlite3.connect(self.database_path)
-            if self.conn:
-                print('Підключення до бази даних пройшло успішно!')
-
-        except sqlite3.Error as e:
-            print('Виникла помилка під час підключення до бази даних:', str(e))
-
-    def create_cursor(self):
-        if self.conn:
-            print(f"Курсор бази данних для шляха {self.database_path} створено")
-            return self.conn.cursor()
-
-    def commit(self):
-        self.conn.commit()
-
-    def close(self):
-        print("DB Close")
-        if self.conn:
-            self.conn.close()
-
-
 # ----------------------------------------PATH DATABASE FILE----------------------------------------------------
 # database_path = input("Database path: ")
-db = DatabaseManager("F:\\Python\\Wallet\\DB\\Wallet.db")
-db.connect()
-cursor = db.create_cursor()
+api = API_ver2.DatabaseManager("F:\\Python\\Wallet\\DB\\Wallet.db")
+api.connect()
+cursor = api.create_cursor()
 
 # --------------------------------------------------------------------------------------------------------------
-cursor.execute("SELECT Name FROM Category")
-categories = cursor.fetchall()
-
-# lst standard categories and user categories
-user_categories = [category[0] for category in categories]
-
-# ---------------------------------------------------------------------------------------------------------------
-cursor.execute("SELECT Number FROM User_Accounts")
-numbers = cursor.fetchall()
-
-# lst number accounts for verification
-lst_accounts = [str(number[0]) for number in numbers]
+user_categories = api.get_categories()
+lst_accounts = api.get_account_numbers()
 
 
 # ----------------------------------------------------------------------------------------------------------------
+
+
 class Menu:
 
     def __init__(self):
@@ -108,7 +69,7 @@ class Menu:
 
     @staticmethod
     def the_end():
-        db.close()
+        api.close()
         quit()
 
     def main_menu(self):
@@ -169,7 +130,8 @@ class Categories(ABC):
             print("\nВи ввели неправильне значення. Спробуйте ще раз.\n")
 
     # checking the correctness of the account number
-    def validate_account_num(self, num):
+    @staticmethod
+    def validate_account_num(num):
         if num in lst_accounts:
             return True
         else:
@@ -191,40 +153,56 @@ class Categories(ABC):
             else:
                 return False
 
-    def display_balance(self, account_num):
-        cursor.execute("SELECT Balance FROM User_accounts WHERE Number = ?", (account_num,))
-        balance_info = cursor.fetchone()
-        print("Баланс: {:,.2f} грн".format(balance_info[0]))
+    @staticmethod
+    def display_balance(account_num):
+        """
+
+        Args:
+            account_num:
+
+        example sql query:
+        "SELECT column_name FROM table_name WHERE where_field = ?", (account_num,)
+
+        """
+        balance_info = api.select("Balance", "User_Accounts", "Number", account_num)
+        print("Баланс: {:,.2f} грн".format(balance_info[0][0]))
 
     def display_account_info(self, account_num):
-        cursor.execute("SELECT * FROM User_accounts WHERE Number = ?", (account_num,))
-        row = cursor.fetchone()
+        """
+        Display account information: account_num, Name, Type, Balance
+        Args:
+            account_num:
+
+        Example sql query:
+        "SELECT * FROM User_accounts WHERE Number = ?", (account_num)
+        """
+        row = api.select("*", "User_Accounts", "Number", account_num)[0]
         print(f"Номер Рахунку: {row[0]}")
         print(f"Тип: {row[1]}")
         print(f"ПІБ: {row[2]}")
         self.display_balance(account_num)
         print()
 
-    def display_num_balance(self):
-        cursor.execute("SELECT NUMBER, Name FROM User_Accounts")
-        numbers_balance = cursor.fetchall()
-        for elem in numbers_balance:
+    def display_number_and_balance(self):
+        numbers_and_balance = api.select(("Number", "Name"), "User_Accounts")
+        for elem in numbers_and_balance:
             print("Номер рахунку: {}".format(elem[0]))
             print("ПІБ: {}".format(elem[1]))
             self.display_balance(elem[0])
             print()
 
-    def display_all_num(self):
+    @staticmethod
+    def display_numbers_and_names():
         for elem in lst_accounts:
-            cursor.execute("SELECT Name FROM User_Accounts WHERE Number = ?", (elem,))
-            name = cursor.fetchall()
+            # cursor.execute("SELECT Name FROM User_Accounts WHERE Number = ?", (elem,))
+            info = api.select("Name", "User_Accounts", "Number", elem)
             print("Номер рахунку: {}".format(elem))
-            print("ПІБ: {}\n".format(name[0][0]))
+            print("ПІБ: {}\n".format(info[0][0]))
 
     def display_transactions(self, account_num):
         """Отображение транзакций"""
-        cursor.execute("SELECT * FROM TransactionAll WHERE Number = ?", (account_num,))
-        transaction_list = cursor.fetchall()
+        # cursor.execute("SELECT * FROM TransactionAll WHERE Number = ?", (account_num,))
+        transaction_list = api.select("*", "TransactionAll", "Number", account_num)
         if len(transaction_list) != 0:
             self.display_account_info(account_num)
             print("Транзакції: ")
@@ -278,7 +256,7 @@ class CategoryOne(Categories):
         if self.validate_name_categories(name):
             self.user_categories.append(name)
             cursor.execute("INSERT INTO Category (Name) VALUES (?)", (name,))
-            db.commit()
+            api.commit()
             if name in self.user_categories:
                 print(f"Категорія {name} додана")
 
@@ -288,7 +266,7 @@ class CategoryOne(Categories):
         if name in self.user_categories:
             self.user_categories.remove(name)
             cursor.execute("DELETE FROM Category WHERE Name = ?", (name,))
-            db.commit()
+            api.commit()
             if name not in self.user_categories:
                 print(f"Категорія {name} видалена")
         elif name not in self.user_categories:
@@ -304,7 +282,7 @@ class CategoryOne(Categories):
                 new_name = input("Введіть нову назву: ")
                 if self.validate_name_categories(new_name):
                     cursor.execute("UPDATE Category SET Name = ? WHERE Name = ?", (new_name, name))
-                    db.commit()
+                    api.commit()
                     self.user_categories[index] = new_name
                     print(f"Назва категорії {name} змінена на {new_name}")
                     break
@@ -373,17 +351,21 @@ class CategoryTwo(Categories):
 
     def add_user_acc(self):
         account_num = self.generate_account_number()
-        account_num = self.validate_new_account_num(account_num)
-        account_name = self.input_name()
-        account_type = self.input_type()
-        if account_num in lst_accounts:
-            cursor.execute("INSERT INTO User_Accounts (Number, Type, Name, Balance) "
-                           "VALUES (?, ?, ?, 0)", (account_num, account_type, account_name))
-            db.commit()
+        if len(account_num) == 8:
+            account_num = self.validate_new_account_num(account_num)
+            account_name = self.input_name()
+            account_type = self.input_type()
+            if account_num in lst_accounts:
+                cursor.execute("INSERT INTO User_Accounts (Number, Type, Name, Balance) "
+                               "VALUES (?, ?, ?, 0)", (account_num, account_type, account_name))
+                api.commit()
 
-        print('Рахунок створено\n')
-        self.display_account_info(account_num)
-        self.visual()
+            print('Рахунок створено\n')
+            self.display_account_info(account_num)
+            self.visual()
+        else:
+            print("Виникла помилка, спробуйте ще раз")
+            return self.add_user_acc
 
     def remove_user_acc(self):
         self.lst_user_acc()
@@ -394,7 +376,7 @@ class CategoryTwo(Categories):
             if num_acc not in lst_accounts:
                 print(f"Рахунок {num_acc} видалено \n")
                 cursor.execute("DELETE FROM TransactionAll WHERE Number = ?", (num_acc,))
-                db.commit()
+                api.commit()
 
         else:
             print("Рахунок не знайдено \n")
@@ -467,7 +449,7 @@ class CategoryTwo(Categories):
             self.display_account_info(input_acc)
             print()
             self.update_menu(input_acc)
-            db.commit()
+            api.commit()
         else:
             print("Рахунок не знайдено, спробуйте ще раз")
             self.update_user_acc()
@@ -552,7 +534,8 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
             else:
                 print("Введена неправильна дата")
 
-    def input_id(self):
+    @staticmethod
+    def input_id():
         pattern = r"^TRX\d{6}$"
         while True:
             transaction_id = input("Введіть id транзакції: ")
@@ -580,7 +563,7 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
             cursor.execute("UPDATE User_Accounts SET Balance = Balance + ? WHERE Number = ?", (amount, account_num))
 
         print("Транзакція додана: {} | {} | {}\n".format(date, category, trans))
-        db.commit()
+        api.commit()
         self.display_account_info(account_num)
 
     # delete transactions
@@ -600,12 +583,12 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
                                    (elem[5], elem[0]))
 
             cursor.execute("DELETE FROM TransactionAll WHERE TransactionID = ?", (transaction_id,))
-            db.commit()
+            api.commit()
             print("Транзакція видалена \n")
 
     # transfer money between accounts
     def transfer_money(self):
-        self.display_num_balance()
+        self.display_number_and_balance()
         print("Номер відправника:")
         from_num1 = self.input_num()
         print("Номер рахунку: {}".format(from_num1))
@@ -665,7 +648,7 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
     # info about  expense\income time interval
 
     def get_expenses_income_by_period(self):
-        self.display_all_num()
+        self.display_numbers_and_names()
         num = self.input_num()
         print("Для перевірки витрат і прибутків за певний період, будь ласка, введіть дату початку періоду та дату "
               "його завершення. Формат дати має бути наступним: рік-місяць-день (наприклад, 2023-05-16)")
@@ -687,7 +670,7 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
 
     # info about all times expense\income in categories
     def get_statistics(self):
-        self.display_all_num()
+        self.display_numbers_and_names()
         num = self.input_num()
         cursor.execute("SELECT * FROM TransactionAll WHERE Number = ? ", (num,))
         statistics_data = cursor.fetchall()

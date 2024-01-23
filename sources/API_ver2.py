@@ -54,17 +54,40 @@ class DatabaseManager:
         """
         Function to retrieve and display data from a specific column in a table.
 
-        #     Args:
-        #     column_name (str): The name of the column to be retrieved.
-        #     table_name (str): The name of the table from which data will be read.
-        #     where_field (str): The column to use for the WHERE condition (optional).
-        #     where_value: The value to match in the where_field (optional).
+        Args:
+            column_name str or tuple: The name of the column to be retrieved.
+            table_name (str): The name of the table from which data will be read.
+            where_field (str): The column to use for the WHERE condition (optional).
+            where_value: The value to match in the where_field (optional).
+
+        Returns:
+            list: A list containing the retrieved data.
+
+        Conditions:
+            1. If multiple columns are specified (column_name is a tuple), all columns will be retrieved:
+                Example: select(("Column1", "Column2"), "TableName")
+
+            2. If where_field and where_value are provided, the query will include a WHERE condition:
+                Example: select("ColumnName", "TableName", where_field="FilterColumn", where_value="FilterValue")
+
+            3. If only column_name is provided, and no WHERE condition is specified, all rows of the specified column
+               will be retrieved:
+                Example: select("ColumnName", "TableName")
+
+
         """
-        if where_field and where_value is not None:
+    
+        if isinstance(column_name, tuple):
+            query = f'SELECT {column_name[0]}, {column_name[1]} FROM {table_name}'
+            info = self.execute_select(query)
+
+        elif where_field and where_value is not None:
             query = f"SELECT {column_name} FROM {table_name} WHERE {where_field} = ?"
             info = self.execute_select(query, (where_value,))
+
         else:
             query = f"SELECT {column_name} FROM {table_name}"
+            print("3")
             info = self.execute_select(query)
 
         return info
@@ -173,42 +196,3 @@ class DatabaseManager:
         print("DB Close")
         if self.conn:
             self.conn.close()
-
-
-class BASE:
-    class DisplayManager:
-        def __init__(self):
-            pass
-
-    class Users:
-        def __init__(self):
-            pass
-
-        def add_user(self):
-            pass
-
-        def update_user_info(self):
-            pass
-
-        def delete_user(self):
-            pass
-
-    class CategoryManager:
-        def __init__(self):
-            pass
-
-        def add_category(self):
-            pass
-
-        def update_category(self):
-            pass
-
-        def delete_category(self):
-            pass
-
-    class TransactionManager(DatabaseManager):
-        def add_transaction(self):
-            pass
-
-        def delete_transaction(self):
-            pass
