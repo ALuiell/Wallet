@@ -671,8 +671,7 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
     def get_statistics(self):
         self.display_numbers_and_names()
         num = self.input_num()
-        cursor.execute("SELECT * FROM TransactionAll WHERE Number = ? ", (num,))
-        statistics_data = cursor.fetchall()
+        statistics_data = api.select("*", "TransactionAll", "Number", num)
         for elem in statistics_data:
             print("Категорія: {} | Дата: {} | Тип: {} | Сумма: {}".format(elem[2], elem[3], elem[1], elem[5]))
 
