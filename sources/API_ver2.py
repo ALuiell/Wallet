@@ -106,11 +106,16 @@ class DatabaseManager:
         """
         Update records in the specified table.
 
-        :param table_name: Name of the table to update.
-        :param set_column: Column to set.
-        :param set_value: New value for the set_column.
-        :param where_column: Column to use for the WHERE condition.
-        :param where_value: Value to match in the where_column.
+            :param table_name: Name of the table to update.
+            :param set_column: Column to set.
+            :param set_value: New value for the set_column.
+            :param where_column: Column to use for the WHERE condition.
+            :param where_value: Value to match in the where_column.
+
+        Example:
+            #  "UPDATE User_Accounts SET Balance = Balance - ? WHERE Number = ?"
+            update("User_Accounts", "Balance", f"Balance - {100}", "Number", "74132896")
+
         """
         try:
             query = f"UPDATE {table_name} SET {set_column} = {set_value} WHERE {where_column} = {where_value}"
@@ -126,6 +131,10 @@ class DatabaseManager:
         :param table_name: The name of the table from which to delete.
         :param field_name: The field to check for the specified value.
         :param value: The value to match for deletion.
+        Example:
+            To delete a record from the "Category" table where "Name" is "Food":
+            delete("Category", "Name", "Food")
+
         """
         query = f"DELETE FROM {table_name} WHERE {field_name} = ?"
         self.execute_query(query, (value,))
