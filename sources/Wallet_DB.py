@@ -255,8 +255,7 @@ class CategoryOne(Categories):
         name = input("Введіть назву нової категорії: ")
         if self.validate_name_categories(name):
             self.user_categories.append(name)
-            cursor.execute("INSERT INTO Category (Name) VALUES (?)", (name,))
-            api.commit()
+            api.create("Category", "Name", name)
             if name in self.user_categories:
                 print(f"Категорія {name} додана")
 
@@ -355,10 +354,8 @@ class CategoryTwo(Categories):
             account_name = self.input_name()
             account_type = self.input_type()
             if account_num in lst_accounts:
-                cursor.execute("INSERT INTO User_Accounts (Number, Type, Name, Balance) "
-                               "VALUES (?, ?, ?, 0)", (account_num, account_type, account_name))
-                api.commit()
-
+                api.create("User_Accounts", ("Number", 'Type', 'Name', 'Balance'),
+                           (account_num, account_type, account_name, 0))
             print('Рахунок створено\n')
             self.display_account_info(account_num)
             self.visual()
@@ -370,7 +367,6 @@ class CategoryTwo(Categories):
         self.lst_user_acc()
         num_acc = input("Введіть номер рахунку для видалення: ")
         if num_acc in lst_accounts:
-            cursor.execute("DELETE FROM User_Accounts WHERE Number = ?", (num_acc,))
             api.delete("User_Accounts", "Number", num_acc)
             lst_accounts.remove(num_acc)
             if num_acc not in lst_accounts:
@@ -480,7 +476,7 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
         time_speed = random.uniform(0, 5)  # случайное значение скорости времени
         step = timedelta(days=1)
         current_time += step * time_speed
-        return current_time.date()
+        return current_time.strftime("%Y-%m-%d")
 
     @staticmethod
     def generate_transaction_id():
@@ -552,16 +548,13 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
         self.display_balance(account_num)
         # Get the date, category, and transaction details from the user input
         date, category, amount, trans_type, trans = self.validate_money_input()
-
-        cursor.execute("INSERT INTO TransactionAll (Number, Type, Category, TransactionDate, TransactionID, Amount) "
-                       "VALUES (?,?,?,?,?,?)", (account_num, trans_type, category, date, trans_id, amount))
+        api.create("TransactionAll", ("Number", "Type", "Category", "TransactionDate", "TransactionID", "Amount"),
+                   (account_num, trans_type, category, date, trans_id, amount))
         if trans_type == "Витрата":
             cursor.execute("UPDATE User_Accounts SET Balance = Balance - ? WHERE Number = ?", (amount, account_num))
         elif trans_type == "Дохід":
             cursor.execute("UPDATE User_Accounts SET Balance = Balance + ? WHERE Number = ?", (amount, account_num))
-
         print("Транзакція додана: {} | {} | {}\n".format(date, category, trans))
-        api.commit()
         self.display_account_info(account_num)
 
     # delete transactions
@@ -608,15 +601,13 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
             # add the new transaction to the DB in Table | TransactionAll | Transaction_Transfer
             if int(balance_num1[0][0]) > amount:
                 # INSERT DATA IN TransactionAll FROM_NUM
-                cursor.execute(
-                    'INSERT INTO TransactionAll (Number, Type, Category, TransactionDate, TransactionID, Amount) VALUES'
-                    '(?, ?, ?, ?, ?, ?)',
-                    (from_num1, "Витрата", category, date1, transfer_id, amount))
+                api.create("TransactionAll",
+                           ("Number", "Type", "Category", "TransactionDate", "TransactionID", "Amount"),
+                           (from_num1, "Витрата", category, date1, transfer_id, amount))
                 # INSERT DATA IN TransactionAll TO_NUM
-                cursor.execute(
-                    'INSERT INTO TransactionAll (Number, Type, Category, TransactionDate, TransactionID, Amount) VALUES'
-                    '(?, ?, ?, ?, ?, ?)',
-                    (to_num2, "Дохід", category, date1, transfer_id, amount))
+                api.create("TransactionAll",
+                           ("Number", "Type", "Category", "TransactionDate", "TransactionID", "Amount"),
+                           (to_num2, "Дохід", category, date1, transfer_id, amount))
                 # UPDATE BALANCE FROM_NUM
                 cursor.execute(
                     "UPDATE User_Accounts SET Balance = Balance - {} WHERE Number = {}".format(amount, from_num1))
@@ -625,12 +616,10 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
                     "UPDATE User_Accounts SET Balance = Balance + {} WHERE Number = {}".format(amount, to_num2))
 
                 # INSERT DATA IN Transaction_Transfer
-                cursor.execute(
-                    'INSERT INTO Transaction_Transfer (From_number, To_number, TransactionDate, TransactionID, Amount ) VALUES (?, ?, ?, ?, ?)',
-                    (from_num1, to_num2, date1, transfer_id, amount))
+                api.create("Transaction_Transfer",
+                           ("From_Number", "To_number", "TransactionDate", "TransactionID", "Amount"),
+                           (from_num1, to_num2, date1, transfer_id, amount))
 
-                # Закончить транзакцию
-                cursor.execute('COMMIT')
                 print("Транзакція пройшла успішно")
 
             else:
@@ -639,7 +628,6 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
             print("Баланс рахунку: {} пустий".format(from_num1))
 
     # info about  expense\income time interval
-
     def get_expenses_income_by_period(self):
         self.display_numbers_and_names()
         num = self.input_num()
