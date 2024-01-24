@@ -265,8 +265,7 @@ class CategoryOne(Categories):
         name = input("Введіть назву категорії: ")
         if name in self.user_categories:
             self.user_categories.remove(name)
-            cursor.execute("DELETE FROM Category WHERE Name = ?", (name,))
-            api.commit()
+            api.delete("Category", "Name", name)
             if name not in self.user_categories:
                 print(f"Категорія {name} видалена")
         elif name not in self.user_categories:
@@ -372,12 +371,11 @@ class CategoryTwo(Categories):
         num_acc = input("Введіть номер рахунку для видалення: ")
         if num_acc in lst_accounts:
             cursor.execute("DELETE FROM User_Accounts WHERE Number = ?", (num_acc,))
+            api.delete("User_Accounts", "Number", num_acc)
             lst_accounts.remove(num_acc)
             if num_acc not in lst_accounts:
                 print(f"Рахунок {num_acc} видалено \n")
-                cursor.execute("DELETE FROM TransactionAll WHERE Number = ?", (num_acc,))
-                api.commit()
-
+                api.delete("TransactionAll", "Number", num_acc)
         else:
             print("Рахунок не знайдено \n")
             self.remove_user_acc()
@@ -582,9 +580,7 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
                 if elem[1] == "Дохід":
                     cursor.execute("UPDATE User_Accounts SET Balance = Balance - ? WHERE Number = ? ",
                                    (elem[5], elem[0]))
-
-            cursor.execute("DELETE FROM TransactionAll WHERE TransactionID = ?", (transaction_id,))
-            api.commit()
+            api.delete("TransactionAll", "TransactionID", transaction_id)
             print("Транзакція видалена \n")
 
     # transfer money between accounts

@@ -159,8 +159,12 @@ class DatabaseManager:
             delete("Category", "Name", "Food")
 
         """
-        query = f"DELETE FROM {table_name} WHERE {field_name} = ?"
-        self.execute_query(query, (value,))
+        try:
+            query = f"DELETE FROM {table_name} WHERE {field_name} = ?"
+            self.execute_query(query, (value,))
+            self.commit()
+        except Exception as e:
+            print(f"Error during data deletion: {e}")
 
     def get_categories(self):
         query = "SELECT Name FROM Category"
