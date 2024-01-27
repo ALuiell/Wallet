@@ -129,11 +129,11 @@ class DatabaseManager:
         """
         Update records in the specified table.
 
-            :param table_name: Name of the table to update.
-            :param set_column: Column to set.
-            :param set_value: New value for the set_column.
-            :param where_column: Column to use for the WHERE condition.
-            :param where_value: Value to match in the where_column.
+            :param table_name: Name of the table to update (str).
+            :param set_column: Column to set (str).
+            :param set_value: New value for the set_column (var).
+            :param where_column: Column to use for the WHERE condition (str).
+            :param where_value: Value to match in the where_column (var).
 
         Example:
             #  "UPDATE User_Accounts SET Balance = Balance - ? WHERE Number = ?"
@@ -141,8 +141,16 @@ class DatabaseManager:
 
         """
         try:
-            query = f"UPDATE {table_name} SET {set_column} = {set_value} WHERE {where_column} = {where_value}"
-            self.execute_query(query)
+            query = f"UPDATE {table_name} SET {set_column} = ? WHERE {where_column} = ?"
+            self.execute_query(query, (set_value, where_value))
+            self.commit()
+        except Exception as e:
+            print(f"Error during data updation: {e}")
+
+    def update_balance(self, amount, number_account, operation=None):
+        try:
+            query = f"UPDATE User_accounts SET Balance = Balance {operation} ? WHERE Number = ?"
+            self.execute_query(query, (amount, number_account))
             self.commit()
         except Exception as e:
             print(f"Error during data updation: {e}")
