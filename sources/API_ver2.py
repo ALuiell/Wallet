@@ -52,27 +52,29 @@ class DatabaseManager:
 
     def select(self, column_name, table_name, where_field=None, where_value=None, start_date=None, end_date=None):
         """
-        Function to retrieve and display data from a specific column in a table.
+         Retrieve and display data from a specific column in a table.
 
-        Args:
-            column_name str or tuple: The name of the column to be retrieved.
-            table_name (str): The name of the table from which data will be read.
-            where_field (str): The column to use for the WHERE condition (optional).
-            where_value: The value to match in the where_field (optional).
+            Args:
+                column_name (str or tuple): The name of the column to be retrieved.
+                table_name (str): The name of the table from which data will be read.
+                where_field (str): The column to use for the WHERE condition (optional).
+                where_value: The value to match in the where_field (optional).
+                start_date: The start date for filtering data (optional).
+                end_date: The end date for filtering data (optional).
 
-        Returns:
-            list: A list containing the retrieved data.
+            Returns:
+                list: A list containing the retrieved data.
 
-        Conditions:
-            1. If multiple columns are specified (column_name is a tuple), all columns will be retrieved:
-                Example: select(("Column1", "Column2"), "TableName")
+            Conditions:
+                1. If multiple columns are specified (column_name is a tuple), all columns will be retrieved:
+                   Example: select(("Column1", "Column2"), "TableName")
 
-            2. If where_field and where_value are provided, the query will include a WHERE condition:
-                Example: select("ColumnName", "TableName", where_field="FilterColumn", where_value="FilterValue")
+                2. If where_field and where_value are provided, the query will include a WHERE condition:
+                   Example: select("ColumnName", "TableName", where_field="FilterColumn", where_value="FilterValue")
 
-            3. If only column_name is provided, and no WHERE condition is specified, all rows of the specified column
-               will be retrieved:
-                Example: select("ColumnName", "TableName")
+                3. If only column_name is provided, and no WHERE condition is specified, all rows of the specified column
+                   will be retrieved:
+                   Example: select("ColumnName", "TableName", start_date="2022-01-01", end_date="2022-01-31")
 
 
         """
