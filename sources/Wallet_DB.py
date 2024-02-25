@@ -10,43 +10,15 @@ from models import *
 add refresh categories and number list
 """
 
-"""
-                                                Database TABLE
-User_accounts Table
-Number: Unique account number (integer).
-Type: Account type (text).
-Name: Account holder's name (text).
-Balance: Account balance (float).
-
-TransactionAll Table
-Number: Account number to which the transaction is associated (integer).
-Type: Type of transaction (text).
-Category: Transaction category (text).
-TransactionDate: Transaction date (in the format "yyyy.mm.dd").
-TransactionID: Unique transaction identifier (text).
-Amount: Transaction amount (float).
-
-Transaction_Transfer Table
-From_number: Sender's account number (integer).
-To_number: Receiver's account number (integer).
-TransactionDate: Transaction date (in the format "yyyy.mm.dd").
-TransactionID: Unique transaction identifier (text).
-Amount: Transaction amount (float).
-
-Category Table
-Name: category name
-"""
-
 # ----------------------------------------PATH DATABASE FILE----------------------------------------------------
 # database_path = input("Database path: ")
 db_manager = database_manager.DatabaseManager("F:\\Python\\Wallet\\DB\\Wallet.db")
 db_manager.connect()
 cursor = db_manager.create_cursor()
 
-# db_path = "F:\\Python\\Wallet\\DB\\wallet_test.db"
-#
-# db_manager = database_manager_ORM.DatabaseManager(db_path)
-# db_manager.connect()
+db_path = "F:\\Python\\Wallet\\DB\\wallet_test.db"
+
+db_manager1 = database_manager_ORM.DatabaseManager(db_path)
 
 # --------------------------------------------------------------------------------------------------------------
 user_categories = [elem.Name for elem in Category]
@@ -245,7 +217,7 @@ class CategoryOne(Categories):
         name = input("Введіть назву нової категорії: ")
         if self.validate_name_categories(name):
             self.user_categories.append(name)
-            db_manager.create("Category", "Name", name)
+            db_manager1.create(Category, {"Name": name})
             if name in self.user_categories:
                 print(f"Категорія {name} додана")
 
@@ -337,16 +309,18 @@ class CategoryTwo(Categories):
                     return "Кредитний"
 
     def add_user_account(self):
-        account_num = self.generate_account_number()
-        if len(account_num) == 8:
-            account_num = self.validate_new_account_number(account_num)
+        account_number = self.generate_account_number()
+        if len(account_number) == 8:
+            account_number = self.validate_new_account_number(account_number)
             account_name = self.input_name()
             account_type = self.input_type()
-            if account_num in lst_accounts:
-                db_manager.create("User_Accounts", ("Number", 'Type', 'Name', 'Balance'),
-                                  (account_num, account_type, account_name, 0))
+            if account_number in lst_accounts:
+                db_manager1.create(User_Accounts, {"Number": account_number,
+                                                   "Type": account_type,
+                                                   "Name": account_name,
+                                                   "Balance": 0})
             print('Рахунок створено\n')
-            self.display_account_info(account_num)
+            self.display_account_info(account_number)
             self.visual()
         else:
             print("Виникла помилка, спробуйте ще раз")
@@ -549,16 +523,13 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
         self.display_balance(account_num)
         date, category, amount, transaction_type, transaction_str = self.validate_money_input()
         num_id, cat_id = User_Accounts.get(Number=account_num), Category.get(Name=category)
+        db_manager1.create(TransactionAll, {"Number": num_id,
+                                            "Type": transaction_type,
+                                            "Category": cat_id,
+                                            "Date": date,
+                                            "Id": trans_id,
+                                            "Amount": amount})
 
-        # db_manager.create(TransactionAll, {"Number": num_id,
-        #                                    "Type": transaction_type,
-        #                                    "Category": cat_id,
-        #                                    "Date": date,
-        #                                    "Id": trans_id,
-        #                                    "Amount": amount})
-        db_manager.create("TransactionAll",
-                          ("Number", "Type", "Category", "TransactionDate", "TransactionID", "Amount"),
-                          (account_num, transaction_type, category, date, trans_id, amount))
         self.update_balance(transaction_type, account_num, amount)
         print("Транзакція додана: {} | {} | {}\n".format(date, category, transaction_str))
         self.display_account_info(account_num)
@@ -585,7 +556,7 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
         print("Номер одержувача:")
         to_num2 = self.input_number()
         transfer_id = self.generate_transaction_id()
-        date1 = self.generate_random_date()
+        date = self.generate_random_date()
         category = "Перекази"
         balance_info = User_Accounts.get(Number=from_num1)
         if balance_info.Balance != 0:
@@ -595,24 +566,27 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
                     break
                 else:
                     print("Сума повинна бути більше нуля. Будь ласка, введіть коректну суму.")
-            # add the new transaction to the DB in Table | TransactionAll | Transaction_Transfer
+
             if balance_info.Balance > amount:
-                # INSERT DATA IN TransactionAll FROM_NUM
-                db_manager.create("TransactionAll",
-                                  ("Number", "Type", "Category", "TransactionDate", "TransactionID", "Amount"),
-                                  (from_num1, "Витрата", category, date1, transfer_id, amount))
-                # INSERT DATA IN TransactionAll TO_NUM
-                db_manager.create("TransactionAll",
-                                  ("Number", "Type", "Category", "TransactionDate", "TransactionID", "Amount"),
-                                  (to_num2, "Дохід", category, date1, transfer_id, amount))
-                # UPDATE BALANCE FROM_NUM
+
+                from_num_id, cat_id = User_Accounts.get(Number=from_num1), Category.get(Name=category)
+                db_manager1.create(TransactionAll, {"Number": from_num_id,
+                                                    "Type": "Витрата",
+                                                    "Category": cat_id,
+                                                    "Date": date,
+                                                    "Id": transfer_id,
+                                                    "Amount": amount})
+
+                to_num_id = User_Accounts.get(Number=to_num2)
+                db_manager1.create(TransactionAll, {"Number": to_num_id,
+                                                    "Type": "Витрата",
+                                                    "Category": cat_id,
+                                                    "Date": date,
+                                                    "Id": transfer_id,
+                                                    "Amount": amount})
+
                 self.update_balance("Витрата", from_num1, amount)
-                # UPDATE BALANCE TO_NUM
                 self.update_balance("Дохід", to_num2, amount)
-                # INSERT DATA IN Transaction_Transfer
-                db_manager.create("Transaction_Transfer",
-                                  ("From_Number", "To_number", "TransactionDate", "TransactionID", "Amount"),
-                                  (from_num1, to_num2, date1, transfer_id, amount))
 
                 print("Транзакція пройшла успішно")
 

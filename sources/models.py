@@ -30,20 +30,8 @@ class TransactionAll(BaseModel):
     Type = TextField()
     Category = ForeignKeyField(Category, backref='transactions')
     Date = DateTimeField()
-    Id = CharField(primary_key=True)
+    TransactionID = CharField(max_length=10)
     Amount = FloatField()
 
     class Meta:
         table_name = "TransactionAll"
-
-
-class Transaction_Transfer(BaseModel):
-    FromNumber = ForeignKeyField(User_Accounts, backref='transfers_out')
-    ToNumber = ForeignKeyField(User_Accounts, backref='transfers_in')
-    Category = ForeignKeyField(Category, backref='transfers')
-    Date = ForeignKeyField(TransactionAll, field='Date', backref='transfers_out')
-    Id = ForeignKeyField(TransactionAll, field='Id')
-    Amount = FloatField()
-
-    class Meta:
-        table_name = "Transaction_Transfer"

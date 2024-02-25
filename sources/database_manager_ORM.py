@@ -1,5 +1,5 @@
 # https://docs.peewee-orm.com/en/latest/
-from models import Category, TransactionAll, User_Accounts, Transaction_Transfer
+from models import Category, TransactionAll, User_Accounts
 from peewee import *
 
 
@@ -7,7 +7,7 @@ class DatabaseManager:
     def __init__(self, database_path):
         self.database_path = database_path
         self.database = SqliteDatabase(self.database_path)
-        self.database.create_tables([Category, TransactionAll, User_Accounts, Transaction_Transfer], safe=True)
+        self.database.create_tables([Category, TransactionAll, User_Accounts], safe=True)
 
     def connect(self):
         try:
