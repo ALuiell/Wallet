@@ -26,7 +26,7 @@ class User_Accounts(BaseModel):
 
 
 class TransactionAll(BaseModel):
-    Number = ForeignKeyField(User_Accounts, backref='transactions')
+    Number = ForeignKeyField(User_Accounts, backref='transactions', on_delete="CASCADE")
     Type = TextField()
     Category = ForeignKeyField(Category, backref='transactions')
     Date = DateTimeField()

@@ -36,7 +36,6 @@ class DatabaseManager:
 
         try:
             model_class.create(**data)
-            print("Record inserted successfully.")
         except Exception as e:
             print(f"Error during data insertion: {e}")
 
@@ -52,12 +51,11 @@ class DatabaseManager:
                 where_column (str): The name of the column used to determine which records to update.
                 where_value: The value used in the condition to select records for updating.
         """
-        # try:
-        query = model_class.update({set_column: set_value}).where(getattr(model_class, where_column) == where_value)
-        query.execute()
-        print("Record updated successfully.")
-        # except Exception as e:
-        #     print(f"Error during data updation: {e}")
+        try:
+            query = model_class.update({set_column: set_value}).where(getattr(model_class, where_column) == where_value)
+            query.execute()
+        except Exception as e:
+            print(f"Error during data updation: {e}")
 
     @staticmethod
     def delete(model_class, where_field, where_value):
@@ -67,13 +65,12 @@ class DatabaseManager:
         Args:
              model_class: The Peewee model class for the table in which the data will be inserted.
              where_field (str): The name of the column where the desired value is located.
-             where_value: value to delete
+             where_value: The value used in the condition to select records for deleting.
 
         """
         try:
             query = model_class.delete().where(getattr(model_class, where_field) == where_value)
             query.execute()
-            print("Record deleted successfully.")
         except Exception as e:
             print(f"Error during data deletion: {e}")
 
