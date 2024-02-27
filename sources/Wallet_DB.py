@@ -540,57 +540,61 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
                 self.update_balance(elem.Type, elem.Number.Number, elem.Amount, is_transaction_cancelled=True)
             db_manager.delete(TransactionAll, "TransactionID", transaction_id)
 
-    # transfer money between accounts
-    # update structure for func
-    def transfer_money(self):
-        self.display_number_and_balance()
-        print("Номер відправника")
-        from_num = self.input_number()
-        print("Номер рахунку: {}".format(from_num))
-        self.display_balance(from_num)
+    def transfer_transaction(self):
+        def get_transfer_info():
+            self.display_number_and_balance()
+            print("Номер відправника")
+            from_number = self.input_number()
+            print("Номер рахунку: {}".format(from_number))
+            self.display_balance(from_number)
+            print()
+            print("Номер одержувача")
+            to_number = self.input_number()
+            transaction_transfer_id = self.generate_transaction_id()
+            transaction_date = self.generate_random_date()
+            return to_number, from_number, transaction_transfer_id, transaction_date
+
+        to_num, from_num, transfer_id, date = get_transfer_info()
+        from_number_object = User_Accounts.get(Number=from_num)
+        to_number_object = User_Accounts.get(Number=to_num)
+
+        def validate_transfer(account_object):
+            if account_object.Balance != 0:
+                while True:
+                    amount_input = float(input("Введіть суму для переводу: "))
+                    if amount_input > 0:
+                        if account_object.Balance > amount_input:
+                            return amount_input
+                        else:
+                            print("Недостатньо коштів на рахунку")
+                    else:
+                        print("Сума повинна бути більше нуля. Будь ласка, введіть коректну суму.")
+
+        amount = validate_transfer(from_number_object)
+        cat_id = Category.get(Name="Перекази")
+
+        def create_transaction():
+            db_manager.create(TransactionAll, {"Number": from_number_object,
+                                               "Type": "Витрата",
+                                               "Category": cat_id,
+                                               "Date": date,
+                                               "TransactionID": transfer_id,
+                                               "Amount": amount})
+
+            db_manager.create(TransactionAll, {"Number": to_number_object,
+                                               "Type": "Дохід",
+                                               "Category": cat_id,
+                                               "Date": date,
+                                               "TransactionID": transfer_id,
+                                               "Amount": amount})
+
+            self.update_balance("Витрата", from_num, amount)
+            self.update_balance("Дохід", to_num, amount)
+            print("Транзакція пройшла успішно")
+            print(f"Відправник: {from_number_object.Name} | Отримувач: {to_number_object.Name}")
+
+        create_transaction()
         print()
-        print("Номер одержувача")
-        to_num = self.input_number()
-        transfer_id = self.generate_transaction_id()
-        date = self.generate_random_date()
-        from_num_object = User_Accounts.get(Number=from_num)
-        if from_num_object.Balance != 0:
-            while True:
-                amount = float(input("Введіть суму для переводу: "))
-                if amount > 0:
-                    break
-                else:
-                    print("Сума повинна бути більше нуля. Будь ласка, введіть коректну суму.")
-
-            if from_num_object.Balance > amount:
-
-                cat_id = Category.get(Name="Перекази")
-                db_manager.create(TransactionAll, {"Number": from_num_object,
-                                                   "Type": "Витрата",
-                                                   "Category": cat_id,
-                                                   "Date": date,
-                                                   "TransactionID": transfer_id,
-                                                   "Amount": amount})
-
-                to_num_object = User_Accounts.get(Number=to_num)
-                db_manager.create(TransactionAll, {"Number": to_num_object,
-                                                   "Type": "Дохід",
-                                                   "Category": cat_id,
-                                                   "Date": date,
-                                                   "TransactionID": transfer_id,
-                                                   "Amount": amount})
-
-                self.update_balance("Витрата", from_num, amount)
-                self.update_balance("Дохід", to_num, amount)
-
-                print("Транзакція пройшла успішно")
-                print(f"Відправник: {from_num_object.Name} | Отримувач: {to_num_object.Name}")
-                print()
-
-            else:
-                print("Недостатньо коштів на рахунку")
-        else:
-            print("Баланс рахунку: {} пустий".format(from_num))
 
     # info about expense\income time interval
     def get_expenses_income_by_period(self):
@@ -626,7 +630,7 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
         functional = {
             1: self.add_transaction,
             2: self.delete_transactions,
-            3: self.transfer_money,
+            3: self.transfer_transaction,
             4: self.get_expenses_income_by_period,
             5: self.get_statistics,
             6: self.menu.main_menu
