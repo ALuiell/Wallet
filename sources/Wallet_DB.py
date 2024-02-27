@@ -42,6 +42,13 @@ class Menu:
             func()
 
     @staticmethod
+    def generate_menu_dict(*list_menu_options):
+        menu_dict = {}
+        for index, option in enumerate(list_menu_options, start=1):
+            menu_dict[index] = option
+        return menu_dict
+
+    @staticmethod
     def the_end():
         db_manager.close()
         quit()
@@ -49,15 +56,15 @@ class Menu:
     def main_menu(self):
         print("1.{} \n2.{} \n3.{} \n4.{} \nОберіть потрібну цифру: от 1 до 4: "
               .format(*self.main_menu_options))
-        menu_dict = {
-            1: self.cat1().menu_category1,
-            2: self.cat2().menu_category2,
-            3: self.cat3().menu_category3,
-            4: self.the_end
-        }
+
+        menu_dict = self.generate_menu_dict(self.cat1().menu_category1,
+                                            self.cat2().menu_category2,
+                                            self.cat3().menu_category3,
+                                            self.the_end)
+
         try:
             choice = int(input("Введіть потрібний пункт: "))
-            self.menu_loop(choice, 4, menu_dict, self.main_menu)
+            self.menu_loop(choice, len(menu_dict), menu_dict, self.main_menu)
         except ValueError:
             print("\nВи ввели неправильне значення. Спробуйте ще раз.\n")
             self.main_menu()
@@ -247,16 +254,14 @@ class CategoryOne(Categories):
         print()
 
     def menu_category1(self):
-        functional = {
-            1: self.add_category,
-            2: self.remove_category,
-            3: self.update_category,
-            4: self.show_list_categories,
-            5: self.menu.main_menu
-        }
+        menu_dict = self.menu.generate_menu_dict(self.add_category,
+                                                 self.remove_category,
+                                                 self.update_category,
+                                                 self.show_list_categories,
+                                                 self.menu.main_menu)
         while True:
             self.print_subcategory_menu(self.menu_categories)
-            self.menu_universal(5, functional, self.menu_category1)
+            self.menu_universal(len(menu_dict), menu_dict, self.menu_category1)
 
 
 class CategoryTwo(Categories):
@@ -414,16 +419,15 @@ class CategoryTwo(Categories):
             self.display_account_info(i)
 
     def menu_category2(self):
-        functional = {
-            1: self.add_user_account,
-            2: self.remove_user_account,
-            3: self.update_user_account,
-            4: self.show_list_users,
-            5: self.menu.main_menu
-        }
+        menu_dict = self.menu.generate_menu_dict(self.add_user_account,
+                                                 self.remove_user_account,
+                                                 self.update_user_account,
+                                                 self.show_list_users,
+                                                 self.return_to_menu
+                                                 )
         while True:
             self.print_subcategory_menu(self.bank_account)
-            self.menu_universal(5, functional, self.menu_category2)
+            self.menu_universal(len(menu_dict), menu_dict, self.menu_category2)
 
 
 class CategoryThree(CategoryOne, CategoryTwo, Categories):
@@ -541,23 +545,19 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
                 self.update_balance(elem.Type, elem.Number.Number, elem.Amount, is_transaction_cancelled=True)
             db_manager.delete(TransactionAll, "TransactionID", transaction_id)
 
-    def transfer_transaction(self):
+    def transaction_transfer_(self):
         def get_transfer_info():
             self.display_number_and_balance()
             print("Номер відправника")
-            from_number = self.input_number()
+            from_num = self.input_number()
             print("Номер рахунку: {}".format(from_number))
             self.display_balance(from_number)
             print()
             print("Номер одержувача")
-            to_number = self.input_number()
+            to_num = self.input_number()
             transaction_transfer_id = self.generate_transaction_id()
-            transaction_date = self.generate_random_date()
-            return to_number, from_number, transaction_transfer_id, transaction_date
-
-        to_num, from_num, transfer_id, date = get_transfer_info()
-        from_number_object = User_Accounts.get(Number=from_num)
-        to_number_object = User_Accounts.get(Number=to_num)
+            date = self.generate_random_date()
+            return to_num, from_num, transaction_transfer_id, date
 
         def validate_transfer(account_object):
             if account_object.Balance != 0:
@@ -571,29 +571,35 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
             else:
                 print("Недостатньо коштів на рахунку")
 
-        amount = validate_transfer(from_number_object)
-        cat_id = Category.get(Name="Перекази")
+        def get_objects():
+            from_number_object = User_Accounts.get(Number=from_number)
+            to_number_object = User_Accounts.get(Number=to_number)
+            cat_id = Category.get(Name="Перекази")
+            return from_number_object, to_number_object, cat_id
 
         def create_transaction():
-            db_manager.create(TransactionAll, {"Number": from_number_object,
+            db_manager.create(TransactionAll, {"Number": from_user_object,
                                                "Type": "Витрата",
-                                               "Category": cat_id,
-                                               "Date": date,
-                                               "TransactionID": transfer_id,
+                                               "Category": category_id,
+                                               "Date": transaction_date,
+                                               "TransactionID": transaction_id,
                                                "Amount": amount})
 
-            db_manager.create(TransactionAll, {"Number": to_number_object,
+            db_manager.create(TransactionAll, {"Number": to_user_object,
                                                "Type": "Дохід",
-                                               "Category": cat_id,
-                                               "Date": date,
-                                               "TransactionID": transfer_id,
+                                               "Category": category_id,
+                                               "Date": transaction_date,
+                                               "TransactionID": transaction_id,
                                                "Amount": amount})
 
-            self.update_balance("Витрата", from_num, amount)
-            self.update_balance("Дохід", to_num, amount)
+            self.update_balance("Витрата", from_number, amount)
+            self.update_balance("Дохід", to_number, amount)
             print("Транзакція пройшла успішно")
-            print(f"Відправник: {from_number_object.Name} | Отримувач: {to_number_object.Name}")
+            print(f"Відправник: {from_user_object.Name} | Отримувач: {to_user_object.Name}")
 
+        to_number, from_number, transaction_id, transaction_date = get_transfer_info()
+        from_user_object, to_user_object, category_id = get_objects()
+        amount = validate_transfer(from_user_object)
         create_transaction()
         print()
 
@@ -627,17 +633,17 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
         print()
 
     def menu_category3(self):
-        functional = {
-            1: self.add_transaction,
-            2: self.delete_transactions,
-            3: self.transfer_transaction,
-            4: self.get_expenses_income_by_period,
-            5: self.get_statistics,
-            6: self.menu.main_menu
-        }
+        menu_dict = self.menu.generate_menu_dict(
+            self.add_transaction,
+            self.delete_transactions,
+            self.transaction_transfer_,
+            self.get_expenses_income_by_period,
+            self.get_statistics,
+            self.return_to_menu
+        )
         while True:
             self.print_subcategory_menu(self.income_expense_management)
-            self.menu_universal(6, functional, self.menu_category3)
+            self.menu_universal(len(menu_dict), menu_dict, self.menu_category3)
 
 
 test = Menu()
