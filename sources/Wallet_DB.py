@@ -430,12 +430,13 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
 
     @staticmethod
     def generate_random_date():
-        """Генерация даты"""
+        """Генерация даты и времени с учетом случайной скорости времени"""
         current_time = datetime.now()
         time_speed = random.uniform(0, 5)  # случайное значение скорости времени
         step = timedelta(days=1)
         current_time += step * time_speed
-        return current_time.strftime("%Y-%m-%d")
+        formatted_datetime = current_time.strftime("%Y-%m-%d %H:%M:%S")
+        return formatted_datetime
 
     @staticmethod
     def generate_transaction_id():
@@ -566,7 +567,7 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
                         return amount_input
                     else:
                         print(
-                            "Сума повинна бути більше нуля і не перевищувати баланс. Будь ласка, введіть коректну суму.")
+                            "Сума повинна бути більше нуля і не перевищувати баланс. Введіть коректну суму.")
             else:
                 print("Недостатньо коштів на рахунку")
 
