@@ -562,13 +562,13 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
             if account_object.Balance != 0:
                 while True:
                     amount_input = float(input("Введіть суму для переводу: "))
-                    if amount_input > 0:
-                        if account_object.Balance > amount_input:
-                            return amount_input
-                        else:
-                            print("Недостатньо коштів на рахунку")
+                    if 0 < amount_input <= account_object.Balance:
+                        return amount_input
                     else:
-                        print("Сума повинна бути більше нуля. Будь ласка, введіть коректну суму.")
+                        print(
+                            "Сума повинна бути більше нуля і не перевищувати баланс. Будь ласка, введіть коректну суму.")
+            else:
+                print("Недостатньо коштів на рахунку")
 
         amount = validate_transfer(from_number_object)
         cat_id = Category.get(Name="Перекази")
@@ -596,7 +596,6 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
         create_transaction()
         print()
 
-    # info about expense\income time interval
     def get_expenses_income_by_period(self):
         self.show_list_users()
         num = self.input_number()
