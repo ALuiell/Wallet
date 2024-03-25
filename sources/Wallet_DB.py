@@ -70,7 +70,7 @@ class Menu:
             self.main_menu()
 
 
-class Categories(ABC):
+class BaseCategory(ABC):
 
     def __init__(self):
         # class Menu
@@ -193,6 +193,18 @@ class Categories(ABC):
                 return num
 
     @staticmethod
+    def update_global_lists():
+        global user_categories, lst_accounts
+
+        # Извлекаем новые значения из базы данных
+        new_categories = [elem.Name for elem in Category]
+        new_accounts = [elem.Number for elem in User_Accounts]
+
+        # Обновляем глобальные списки
+        user_categories = new_categories
+        lst_accounts = new_accounts
+
+    @staticmethod
     def visual():
         print("-------------------------------------------------------------------------------------------------------")
 
@@ -202,51 +214,59 @@ class Categories(ABC):
             print(elem)
 
 
-class CategoryOne(Categories):
+class CategoryOne(BaseCategory):
 
-    def validate_name_categories(self, name):
-        if name in self.user_categories:
-            print("Категорія з назвою {} вже існує.".format(name))
-            return False
-        else:
-            return True
+    @staticmethod
+    def category_name_exists(name):
+        return db_manager.verify(Category, "Name", name)
 
-    def add_category(self):
+    def create_new_category(self):
         print("\nІснуючі категорії:")
         self.show_user_categories()
         name = input("Введіть назву нової категорії: ")
-        if self.validate_name_categories(name):
-            self.user_categories.append(name)
-            db_manager.create(Category, {"Name": name})
-            if name in self.user_categories:
-                print(f"Категорія {name} додана")
+        if not self.category_name_exists(name):
+            self.add_category_to_db(name)
+            self.update_global_lists()
+
+    @staticmethod
+    def add_category_to_db(name):
+        db_manager.create(Category, {"Name": name})
+        print(f"Категорія {name} додана")
 
     def remove_category(self):
         self.show_user_categories()
         name = input("Введіть назву категорії: ")
-        if name in self.user_categories:
-            self.user_categories.remove(name)
-            db_manager.delete(Category, "Name", name)
-            if name not in self.user_categories:
-                print(f"Категорія {name} видалена")
-        elif name not in self.user_categories:
+        if self.category_name_exists(name):
+            self.delete_category_from_db(name)
+        else:
             print(f"Категорію з назвою {name} не знайдено")
+
+    def delete_category_from_db(self, name):
+        db_manager.delete(Category, "Name", name)
+        if not self.category_name_exists(name):
+            print(f"Категорія {name} видалена")
+            self.update_global_lists()
 
     def update_category(self):
         self.show_user_categories()
         name = input("Введіть назву категорії, яку потрібно змінити: ")
-        if name in self.user_categories:
+        if self.category_name_exists(name):
             print(f"Категорія з назвою {name} знайдена.")
-            index = self.user_categories.index(name)
             while True:
                 new_name = input("Введіть нову назву: ")
-                if self.validate_name_categories(new_name):
-                    db_manager.update(Category, "Name", new_name, "Name", name)
-                    self.user_categories[index] = new_name
-                    print(f"Назва категорії {name} змінена на {new_name}")
+                if not self.category_name_exists(new_name):
+                    self.update_name_category_in_db(name, new_name)
                     break
+                else:
+                    print(f"Категорія з назвою {new_name} вже існує. Будь ласка, введіть інше ім'я.")
+
         else:
             print(f"Категорія з назвою {name} не знайдена")
+
+    def update_name_category_in_db(self, name, new_name):
+        db_manager.update(Category, "Name", new_name, "Name", name)
+        print(f"Назва категорії {name} змінена на {new_name}")
+        self.update_global_lists()
 
     def show_list_categories(self):
         print("Список категорій:")
@@ -254,7 +274,7 @@ class CategoryOne(Categories):
         print()
 
     def menu_category1(self):
-        menu_dict = self.menu.generate_menu_dict(self.add_category,
+        menu_dict = self.menu.generate_menu_dict(self.create_new_category,
                                                  self.remove_category,
                                                  self.update_category,
                                                  self.show_list_categories,
@@ -264,7 +284,7 @@ class CategoryOne(Categories):
             self.menu_universal(len(menu_dict), menu_dict, self.menu_category1)
 
 
-class CategoryTwo(Categories):
+class CategoryTwo(BaseCategory):
     # когда удаляют счет удалять из списка lst_account
     @staticmethod
     def generate_account_number():
@@ -430,7 +450,7 @@ class CategoryTwo(Categories):
             self.menu_universal(len(menu_dict), menu_dict, self.menu_category2)
 
 
-class CategoryThree(CategoryOne, CategoryTwo, Categories):
+class CategoryThree(CategoryOne, CategoryTwo, BaseCategory):
 
     @staticmethod
     def generate_random_date():

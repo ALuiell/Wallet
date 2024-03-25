@@ -74,6 +74,15 @@ class DatabaseManager:
         except Exception as e:
             print(f"Error during data deletion: {e}")
 
+    @staticmethod
+    def verify(model_class, where_field, where_value):
+        """
+        return True if exists
+        return False if does not
+
+        """
+        return model_class.select().where(getattr(model_class, where_field) == where_value).exists()
+
     def close(self):
         self.database.close()
         print("Кінець")
