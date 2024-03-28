@@ -103,10 +103,11 @@ class BaseCategory(ABC):
         self.menu.main_menu()
 
     # checks for a data type and sends to the menu_loop function
-    def menu_universal(self, num, functional, menu_name):
+    def menu_universal(self, menu_dict, menu_name):
+        menu_item_count = len(menu_dict)
         try:
             choice = int(input("Оберіть потрібний пункт: "))
-            self.menu.menu_loop(choice, num, functional, menu_name)
+            self.menu.menu_loop(choice, menu_item_count, menu_dict, menu_name)
         except ValueError:
             print("\nВи ввели неправильне значення. Спробуйте ще раз.\n")
 
@@ -189,8 +190,11 @@ class BaseCategory(ABC):
     def input_number(self):
         while True:
             num = input("Введіть номер рахунку:")
-            if self.validate_account_num(num):
-                return num
+            if num.isnumeric():
+                if self.validate_account_num(num):
+                    return num
+            else:
+                print("Введено некоректні дані, спробуйте ще раз.")
 
     @staticmethod
     def update_global_lists():
@@ -227,6 +231,8 @@ class CategoryOne(BaseCategory):
         if not self.category_name_exists(name):
             self.add_category_to_db(name)
             self.update_global_lists()
+        else:
+            print("Категорія з такою назвою вже існує")
 
     @staticmethod
     def add_category_to_db(name):
@@ -238,14 +244,14 @@ class CategoryOne(BaseCategory):
         name = input("Введіть назву категорії: ")
         if self.category_name_exists(name):
             self.delete_category_from_db(name)
+            self.update_global_lists()
         else:
             print(f"Категорію з назвою {name} не знайдено")
 
-    def delete_category_from_db(self, name):
+    @staticmethod
+    def delete_category_from_db(name):
         db_manager.delete(Category, "Name", name)
-        if not self.category_name_exists(name):
-            print(f"Категорія {name} видалена")
-            self.update_global_lists()
+        print(f"Категорія {name} видалена")
 
     def update_category(self):
         self.show_user_categories()
@@ -256,6 +262,7 @@ class CategoryOne(BaseCategory):
                 new_name = input("Введіть нову назву: ")
                 if not self.category_name_exists(new_name):
                     self.update_name_category_in_db(name, new_name)
+                    self.update_global_lists()
                     break
                 else:
                     print(f"Категорія з назвою {new_name} вже існує. Будь ласка, введіть інше ім'я.")
@@ -263,10 +270,10 @@ class CategoryOne(BaseCategory):
         else:
             print(f"Категорія з назвою {name} не знайдена")
 
-    def update_name_category_in_db(self, name, new_name):
+    @staticmethod
+    def update_name_category_in_db(name, new_name):
         db_manager.update(Category, "Name", new_name, "Name", name)
         print(f"Назва категорії {name} змінена на {new_name}")
-        self.update_global_lists()
 
     def show_list_categories(self):
         print("Список категорій:")
@@ -281,35 +288,35 @@ class CategoryOne(BaseCategory):
                                                  self.menu.main_menu)
         while True:
             self.print_subcategory_menu(self.menu_categories)
-            self.menu_universal(len(menu_dict), menu_dict, self.menu_category1)
+            self.menu_universal(menu_dict, self.menu_category1)
 
 
 class CategoryTwo(BaseCategory):
-    # когда удаляют счет удалять из списка lst_account
-    @staticmethod
-    def generate_account_number():
+
+    def generate_account_number(self):
         digits = list(range(10))
         random.shuffle(digits)
         account_number = ''.join(map(str, digits[:8]))
-        return account_number
-
-    def validate_new_account_number(self, account_num):
-        if account_num not in lst_accounts:
-            lst_accounts.append(account_num)
+        if len(account_number) == 8:
+            if not self.account_number_exists(account_number):
+                return account_number
         else:
-            account_num = self.generate_account_number()
-            lst_accounts.append(account_num)
-        return account_num
+            self.generate_account_number()
+
+    @staticmethod
+    def account_number_exists(account_num):
+        return db_manager.verify(User_Accounts, "Number", account_num)
 
     @staticmethod
     def validate_name(name):
         # pattern = r'^[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+\s+([-\']?[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+\s+)?[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+$'
         pattern = r'^[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+\s+[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+\s+[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+$'
+        # pattern = r'^[\p{Lu}][\p{L}\s]+[\p{Lu}][\p{L}\s]+[\p{Lu}][\p{L}\s]+$'
         match = re.match(pattern, name)
         if match:
             return True
         else:
-            print("ПІБ введено неправильно")
+            print("ПІБ введено неправильно, спробуйте ще.")
             return False
 
     def input_name(self):
@@ -327,110 +334,94 @@ class CategoryTwo(BaseCategory):
                 elif account_type == "2":
                     return "Кредитний"
 
-    def add_user_account(self):
+    def create_user_account(self):
         account_number = self.generate_account_number()
-        if len(account_number) == 8:
-            account_number = self.validate_new_account_number(account_number)
-            account_name = self.input_name()
-            account_type = self.input_type()
-            if account_number in lst_accounts:
-                db_manager.create(User_Accounts, {"Number": account_number,
-                                                  "Type": account_type,
-                                                  "Name": account_name,
-                                                  "Balance": 0})
-            print('Рахунок створено\n')
-            self.display_account_info(account_number)
-            self.visual()
-        else:
-            print("Виникла помилка, спробуйте ще раз")
-            return self.add_user_account
+        account_name = self.input_name()
+        account_type = self.input_type()
+        data = {"Number": account_number,
+                "Type": account_type,
+                "Name": account_name,
+                "Balance": 0}
+        self.add_new_user_to_db(data)
+        self.display_account_info(data["Number"])
+        self.update_global_lists()
+        self.visual()
+
+    @staticmethod
+    def add_new_user_to_db(data):
+        db_manager.create(User_Accounts, data)
+        print('Рахунок створено\n')
 
     def remove_user_account(self):
         self.show_list_users()
-        number_for_delete = input("Введіть номер рахунку для видалення: ")
+        number_for_delete = self.input_number()
         number_id = User_Accounts.get(Number=number_for_delete)
-
-        if number_for_delete in lst_accounts:
-            db_manager.delete(User_Accounts, "Number", number_for_delete)
-            lst_accounts.remove(number_for_delete)
-            if number_for_delete not in lst_accounts:
-                print(f"Рахунок {number_for_delete} видалено \n")
-                db_manager.delete(TransactionAll, "Number", number_id)
+        if self.account_number_exists(number_for_delete):
+            self.delete_user_account_from_db(number_for_delete, number_id)
+            self.update_global_lists()
         else:
-            print("Рахунок не знайдено \n")
             self.remove_user_account()
 
-    def update_menu(self, input_acc):
-        def update_account_type():
-            update_acc_type = ["1.Дебетовий", "2.Кредитний", "3.Назад"]
-            print("{} \n{} \n{}".format(*update_acc_type))
-            while True:
-                # проверять ввод через функцию  validate_menu_choice
-                what_type = input("Оберіть пункт: ")
-                if what_type == "1":
-                    db_manager.update(User_Accounts, "Type", "Дебетовий", "Number", input_acc)
-                    print("Тип рахунку змінено на Дебетовий \n")
-                    self.display_account_info(input_acc)
-                    return
+    @staticmethod
+    def delete_user_account_from_db(number, number_id):
+        db_manager.delete(User_Accounts, "Number", number)
+        db_manager.delete(TransactionAll, "Number", number_id)
+        print(f"Рахунок {number} видалено \n")
 
-                elif what_type == "2":
-                    db_manager.update(User_Accounts, "Type", "Кредитний", "Number", input_acc)
-                    print("Тип рахунку змінено на Кредитний \n")
-                    self.display_account_info(input_acc)
-                    return
+    def update_user_name(self, account_number):
+        while True:
+            new_name = input("Введіть новий ПІБ: ")
+            if self.validate_name(new_name):
+                db_manager.update(User_Accounts, "Name", new_name, "Number", account_number)
+                print("Інформацію оновлено")
+                self.display_account_info(account_number)
+                return
 
-                elif what_type == "3":
-                    return
+    def update_user_type_on_credit(self, account_number):
+        db_manager.update(User_Accounts, "Type", "Кредитний", "Number", account_number)
+        print("Тип рахунку змінено на Кредитний \n")
+        self.display_account_info(account_number)
 
-                else:
-                    print("Неправильний вибір, спробуйте ще раз.")
-                    update_account_type()
+    def update_user_type_on_debit(self, account_number):
+        db_manager.update(User_Accounts, "Type", "Дебетовий", "Number", account_number)
+        print("Тип рахунку змінено на Дебетовий \n")
+        self.display_account_info(account_number)
 
-        def update_account_name():
-            while True:
-                new_name = input("Введіть новий ПІБ: ")
-                if self.validate_name(new_name):
-                    # cursor.execute("UPDATE User_Accounts SET Name = ? WHERE Number = ?", (new_name, input_acc))
-                    db_manager.update(User_Accounts, "Name", new_name, "Number", input_acc)
-                    print("Інформацію оновлено")
-                    self.display_account_info(input_acc)
-                    self.update_menu(input_acc)
-                    return "back"
-
-                else:
-                    print("Неправильне ім'я, спробуйте ще раз.")
-                    continue
+    def display_user_type_update_menu(self, account_number):
+        update_menu_type_lst = ["Дебетовий", "Кредитний", "Назад"]
+        menu_dict = self.menu.generate_menu_dict(
+            lambda: self.update_user_type_on_debit(account_number),
+            lambda: self.update_user_type_on_credit(account_number),
+            lambda: self.display_user_data_update_menu(account_number)
+        )
 
         while True:
-            update_menu_lst = ["Що бажаєте змінити?", "1.Тип", "2.ПІБ", "3.Повернутись в меню"]
-            print("{} \n{} \n{} \n{}".format(*update_menu_lst))
-            what_change = input("Введіть номер опції: ")
-            if what_change == "1":
-                update_account_type()
-
-            elif what_change == "2":
-                result1 = update_account_name()
-                if result1 == "back":
-                    break
-
-            elif what_change == "3":
+            self.print_subcategory_menu(update_menu_type_lst)
+            choice = input("Оберіть потрібний пункт: ")
+            if choice.isdigit() and int(choice) in menu_dict:
+                menu_dict[int(choice)]()
                 break
-
             else:
                 print("Неправильний вибір, спробуйте ще раз.")
-                self.update_menu(input_acc)
 
-    def update_user_account(self):
+    def display_user_data_update_menu(self, account_number=None):
+        update_menu_lst = ["Тип", "ПІБ", "Повернутись в меню"]
+        menu_dict = self.menu.generate_menu_dict(
+            lambda: self.display_user_type_update_menu(account_number),
+            lambda: self.update_user_name(account_number),
+            self.menu_category2
+        )
+        while True:
+            self.print_subcategory_menu(update_menu_lst)
+            self.menu_universal(menu_dict, self.display_user_data_update_menu)
+
+    def update_user_data(self):
         self.show_list_users()
-        input_acc = input("Введіть номер рахунку: ")
-        if input_acc in lst_accounts:
-            print("Рахунок знайдено")
-            self.display_account_info(input_acc)
-            print()
-            self.update_menu(input_acc)
-        else:
-            print("Рахунок не знайдено, спробуйте ще раз")
-            self.update_user_account()
+        account_number = self.input_number()
+        print("Рахунок знайдено")
+        print()
+        self.display_account_info(account_number)
+        self.display_user_data_update_menu(account_number)
 
     def show_list_users(self):
         if len(lst_accounts) == 0:
@@ -439,15 +430,15 @@ class CategoryTwo(BaseCategory):
             self.display_account_info(i)
 
     def menu_category2(self):
-        menu_dict = self.menu.generate_menu_dict(self.add_user_account,
+        menu_dict = self.menu.generate_menu_dict(self.create_user_account,
                                                  self.remove_user_account,
-                                                 self.update_user_account,
+                                                 self.update_user_data,
                                                  self.show_list_users,
                                                  self.return_to_menu
                                                  )
         while True:
             self.print_subcategory_menu(self.bank_account)
-            self.menu_universal(len(menu_dict), menu_dict, self.menu_category2)
+            self.menu_universal(menu_dict, self.menu_category2)
 
 
 class CategoryThree(CategoryOne, CategoryTwo, BaseCategory):
@@ -663,8 +654,9 @@ class CategoryThree(CategoryOne, CategoryTwo, BaseCategory):
         )
         while True:
             self.print_subcategory_menu(self.income_expense_management)
-            self.menu_universal(len(menu_dict), menu_dict, self.menu_category3)
+            self.menu_universal(menu_dict, self.menu_category3)
 
 
-test = Menu()
-test.main_menu()
+if __name__ == '__main__':
+    test = Menu()
+    test.main_menu()
