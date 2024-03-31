@@ -4,6 +4,7 @@ import random
 from abc import ABC
 from sources import database_manager_ORM
 from models import *
+from Menu import MenuManager
 
 """Version 3.
 add refresh categories and number list
@@ -20,72 +21,22 @@ lst_accounts = [elem.Number for elem in User_Accounts]
 
 # ----------------------------------------------------------------------------------------------------------------
 
-
-class Menu:
-
-    def __init__(self):
-        self.main_menu_options = ["Управління категоріями витрат та доходів", "Управління рахунками",
-                                  "Управління витратами та доходами", "Вихід"]
-        self.cat1 = CategoryOne
-        self.cat2 = CategoryTwo
-        self.cat3 = CategoryThree
-
-    # functional cycle of the menu, responsible for the operation and calling functions selected by the user
-
-    @staticmethod
-    def menu_loop(name_var, end, dictionary, menu_name=None):
-        if name_var > end:
-            print("Ви ввели неправильне значення. Спробуйте ще раз")
-            menu_name()
-        elif name_var <= end:
-            func = dictionary.get(name_var)
-            func()
-
-    @staticmethod
-    def generate_menu_dict(*list_menu_options):
-        menu_dict = {}
-        for index, option in enumerate(list_menu_options, start=1):
-            menu_dict[index] = option
-        return menu_dict
-
-    @staticmethod
-    def the_end():
-        db_manager.close()
-        quit()
-
-    def main_menu(self):
-        print("1.{} \n2.{} \n3.{} \n4.{} \nОберіть потрібну цифру: от 1 до 4: "
-              .format(*self.main_menu_options))
-
-        menu_dict = self.generate_menu_dict(self.cat1().menu_category1,
-                                            self.cat2().menu_category2,
-                                            self.cat3().menu_category3,
-                                            self.the_end)
-
-        try:
-            choice = int(input("Введіть потрібний пункт: "))
-            self.menu_loop(choice, len(menu_dict), menu_dict, self.main_menu)
-        except ValueError:
-            print("\nВи ввели неправильне значення. Спробуйте ще раз.\n")
-            self.main_menu()
-
-
 class BaseCategory(ABC):
 
     def __init__(self):
         # class Menu
-        self.menu = Menu()
+        self.menu = test
 
-        # CategoryOne
+        # CategoryManager
         self.menu_categories = ["Додати категорію", "Видалити категорію", "Змінити дані про категорію",
                                 "Перегляд списку категорій", "Назад\n"]
         self.user_categories = user_categories
 
-        # CategoryTwo
+        # UserManager
         self.bank_account = ["Створити новий рахунок", "Видалити рахунок", "Змінити дані рахунку",
                              "Переглянути список рахунків", "Назад\n"]
 
-        # CategoryThree
+        # AccountManager
         self.income_expense_management = ["Додати транзакцію",
                                           "Видалити транзакцію",
                                           "Переведення грошей з рахунку на рахунок",
@@ -93,23 +44,8 @@ class BaseCategory(ABC):
                                           "Отримання статистики прибутків/витрат за певний період по категоріях",
                                           "Назад\n"]
 
-    # displaying menu items of the selected category
-    @staticmethod
-    def print_subcategory_menu(lst):
-        for i, elem in enumerate(lst, start=1):
-            print(f"{i}.{elem}")
-
     def return_to_menu(self):
         self.menu.main_menu()
-
-    # checks for a data type and sends to the menu_loop function
-    def menu_universal(self, menu_dict, menu_name):
-        menu_item_count = len(menu_dict)
-        try:
-            choice = int(input("Оберіть потрібний пункт: "))
-            self.menu.menu_loop(choice, menu_item_count, menu_dict, menu_name)
-        except ValueError:
-            print("\nВи ввели неправильне значення. Спробуйте ще раз.\n")
 
     # checking the correctness of the account number
     @staticmethod
@@ -218,7 +154,7 @@ class BaseCategory(ABC):
             print(elem)
 
 
-class CategoryOne(BaseCategory):
+class CategoryManager(BaseCategory):
 
     @staticmethod
     def category_name_exists(name):
@@ -280,18 +216,17 @@ class CategoryOne(BaseCategory):
         print(", ".join(self.user_categories))
         print()
 
-    def menu_category1(self):
-        menu_dict = self.menu.generate_menu_dict(self.create_new_category,
-                                                 self.remove_category,
-                                                 self.update_category,
-                                                 self.show_list_categories,
-                                                 self.menu.main_menu)
-        while True:
-            self.print_subcategory_menu(self.menu_categories)
-            self.menu_universal(menu_dict, self.menu_category1)
+    def category_manager_menu(self):
+        list_of_methods = (self.create_new_category,
+                           self.remove_category,
+                           self.update_category,
+                           self.show_list_categories,
+                           self.menu.main_menu)
+
+        self.menu.create_menu(list_of_methods, self.menu_categories, self.category_manager_menu)
 
 
-class CategoryTwo(BaseCategory):
+class UserManager(BaseCategory):
 
     def generate_account_number(self):
         digits = list(range(10))
@@ -396,7 +331,7 @@ class CategoryTwo(BaseCategory):
         )
 
         while True:
-            self.print_subcategory_menu(update_menu_type_lst)
+            self.menu.print_subcategory_menu(update_menu_type_lst)
             choice = input("Оберіть потрібний пункт: ")
             if choice.isdigit() and int(choice) in menu_dict:
                 menu_dict[int(choice)]()
@@ -409,11 +344,11 @@ class CategoryTwo(BaseCategory):
         menu_dict = self.menu.generate_menu_dict(
             lambda: self.display_user_type_update_menu(account_number),
             lambda: self.update_user_name(account_number),
-            self.menu_category2
+            self.user_manager_menu()
         )
         while True:
-            self.print_subcategory_menu(update_menu_lst)
-            self.menu_universal(menu_dict, self.display_user_data_update_menu)
+            self.menu.print_subcategory_menu(update_menu_lst)
+            self.menu.menu_universal(menu_dict, self.display_user_data_update_menu)
 
     def update_user_data(self):
         self.show_list_users()
@@ -429,19 +364,17 @@ class CategoryTwo(BaseCategory):
         for i in lst_accounts:
             self.display_account_info(i)
 
-    def menu_category2(self):
-        menu_dict = self.menu.generate_menu_dict(self.create_user_account,
-                                                 self.remove_user_account,
-                                                 self.update_user_data,
-                                                 self.show_list_users,
-                                                 self.return_to_menu
-                                                 )
-        while True:
-            self.print_subcategory_menu(self.bank_account)
-            self.menu_universal(menu_dict, self.menu_category2)
+    def user_manager_menu(self):
+        list_of_methods = (self.create_user_account,
+                           self.remove_user_account,
+                           self.update_user_data,
+                           self.show_list_users,
+                           self.return_to_menu)
+
+        self.menu.create_menu(list_of_methods, self.bank_account, self.user_manager_menu)
 
 
-class CategoryThree(CategoryOne, CategoryTwo, BaseCategory):
+class AccountManager(CategoryManager, UserManager, BaseCategory):
 
     @staticmethod
     def generate_random_date():
@@ -643,20 +576,18 @@ class CategoryThree(CategoryOne, CategoryTwo, BaseCategory):
 
         print()
 
-    def menu_category3(self):
-        menu_dict = self.menu.generate_menu_dict(
-            self.add_transaction,
-            self.delete_transactions,
-            self.transaction_transfer_,
-            self.get_expenses_income_by_period,
-            self.get_statistics,
-            self.return_to_menu
-        )
-        while True:
-            self.print_subcategory_menu(self.income_expense_management)
-            self.menu_universal(menu_dict, self.menu_category3)
+    def account_manager_menu(self):
+
+        list_of_methods = (self.add_transaction,
+                           self.delete_transactions,
+                           self.transaction_transfer_,
+                           self.get_expenses_income_by_period,
+                           self.get_statistics,
+                           self.return_to_menu)
+
+        self.menu.create_menu(list_of_methods, self.income_expense_management, self.account_manager_menu)
 
 
 if __name__ == '__main__':
-    test = Menu()
+    test = MenuManager(CategoryManager, UserManager, AccountManager)
     test.main_menu()
