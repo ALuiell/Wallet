@@ -2,7 +2,7 @@ import re
 from datetime import datetime, timedelta
 import random
 from abc import ABC
-from sources import API_ver2
+from sources import db_manager2
 
 """Version 3.0"""
 
