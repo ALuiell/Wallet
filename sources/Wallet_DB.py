@@ -1,14 +1,9 @@
 import re
 from datetime import datetime, timedelta
 import random
-from abc import ABC
 from sources import database_manager_ORM
 from models import *
 from Menu import MenuManager
-
-"""Version 3.
-add refresh categories and number list
-"""
 
 # ----------------------------------------PATH DATABASE FILE----------------------------------------------------
 db_path = "F:\\Python\\Wallet\\DB\\wallet_test.db"
@@ -21,20 +16,21 @@ lst_accounts = [elem.Number for elem in User_Accounts]
 
 # ----------------------------------------------------------------------------------------------------------------
 
-class BaseCategory(ABC):
+
+class BaseClass:
 
     def __init__(self):
         # class Menu
-        self.menu = test
+        self.menu = MenuManager(CategoryManager, UserManager, AccountManager)
 
         # CategoryManager
         self.menu_categories = ["Додати категорію", "Видалити категорію", "Змінити дані про категорію",
-                                "Перегляд списку категорій", "Назад\n"]
+                                "Перегляд списку категорій", "Назад"]
         self.user_categories = user_categories
 
         # UserManager
         self.bank_account = ["Створити новий рахунок", "Видалити рахунок", "Змінити дані рахунку",
-                             "Переглянути список рахунків", "Назад\n"]
+                             "Переглянути список рахунків", "Назад"]
 
         # AccountManager
         self.income_expense_management = ["Додати транзакцію",
@@ -42,10 +38,7 @@ class BaseCategory(ABC):
                                           "Переведення грошей з рахунку на рахунок",
                                           "Перевірка витрат/прибутків за певний період",
                                           "Отримання статистики прибутків/витрат за певний період по категоріях",
-                                          "Назад\n"]
-
-    def return_to_menu(self):
-        self.menu.main_menu()
+                                          "Назад"]
 
     # checking the correctness of the account number
     @staticmethod
@@ -59,22 +52,38 @@ class BaseCategory(ABC):
     # You pass the second argument as True if you need to check for 3.
     # If you need to check for 2, then you don't pass anything.
     @staticmethod
-    def validate_menu_choice(var, include_three=False):
-        if not include_three:
-            if var == "1" or var == "2":
-                return True
-            else:
-                return False
-        elif include_three:
-            if var == "1" or var == "2" or var == "3":
-                return True
-            else:
-                return False
+    def validate_menu_choice(var, include_three=True):
+        choices = ["1", "2"]
+        if include_three:
+            choices.append("3")
+
+        return var in choices
 
     @staticmethod
     def display_balance(account_num):
         balance_info = User_Accounts.get(Number=account_num)
         print("Баланс: {:,.2f} грн".format(balance_info.Balance))
+
+    @staticmethod
+    def show_list_users():
+        for elem in User_Accounts.select(User_Accounts.Number, User_Accounts.Name):
+            print(f"Номер рахунку: {elem.Number}")
+            print(f"ПІБ: {elem.Name}\n")
+
+    @staticmethod
+    def update_global_lists():
+        global user_categories, lst_accounts
+
+        new_categories = [elem.Name for elem in Category]
+        new_accounts = [elem.Number for elem in User_Accounts]
+
+        user_categories = new_categories
+        lst_accounts = new_accounts
+
+    @staticmethod
+    def show_user_categories():
+        for elem in user_categories:
+            print(elem)
 
     def display_account_info(self, account_num):
         row = User_Accounts.get(Number=account_num)
@@ -90,12 +99,6 @@ class BaseCategory(ABC):
             print(f"ПІБ: {elem.Name}")
             self.display_balance(elem.Number)
             print()
-
-    @staticmethod
-    def show_list_users():
-        for elem in User_Accounts.select(User_Accounts.Number, User_Accounts.Name):
-            print(f"Номер рахунку: {elem.Number}")
-            print(f"ПІБ: {elem.Name}\n")
 
     def display_user_transactions(self, account_num, show_for_user=False):
         list_transactions = (TransactionAll
@@ -117,7 +120,7 @@ class BaseCategory(ABC):
                         f"{count}. {transaction.Date} | {transaction.Category.Name} | {transaction.Type} "
                         f"| {transaction.Amount} "
                         f"| id:{transaction.TransactionID}")
-                self.visual()
+                self.menu.visual()
                 return True
         else:
             print("Транзакцій на рахунку: {} не знайдено\n".format(account_num))
@@ -125,43 +128,29 @@ class BaseCategory(ABC):
 
     def input_number(self):
         while True:
-            num = input("Введіть номер рахунку:")
+            num = input("Введіть номер рахунку:").strip()
             if num.isnumeric():
                 if self.validate_account_num(num):
                     return num
             else:
                 print("Введено некоректні дані, спробуйте ще раз.")
 
-    @staticmethod
-    def update_global_lists():
-        global user_categories, lst_accounts
+    def start(self):
+        self.menu.main_menu()
 
-        # Извлекаем новые значения из базы данных
-        new_categories = [elem.Name for elem in Category]
-        new_accounts = [elem.Number for elem in User_Accounts]
-
-        # Обновляем глобальные списки
-        user_categories = new_categories
-        lst_accounts = new_accounts
-
-    @staticmethod
-    def visual():
-        print("-------------------------------------------------------------------------------------------------------")
-
-    @staticmethod
-    def show_user_categories():
-        for elem in user_categories:
-            print(elem)
+    def return_to_menu(self):
+        self.menu.main_menu()
 
 
-class CategoryManager(BaseCategory):
+class CategoryManager(BaseClass):
 
     @staticmethod
     def category_name_exists(name):
         return db_manager.verify(Category, "Name", name)
 
+    # ввод от 3х символов
     def create_new_category(self):
-        print("\nІснуючі категорії:")
+        print("Існуючі категорії:")
         self.show_user_categories()
         name = input("Введіть назву нової категорії: ")
         if not self.category_name_exists(name):
@@ -214,7 +203,6 @@ class CategoryManager(BaseCategory):
     def show_list_categories(self):
         print("Список категорій:")
         print(", ".join(self.user_categories))
-        print()
 
     def category_manager_menu(self):
         list_of_methods = (self.create_new_category,
@@ -226,7 +214,7 @@ class CategoryManager(BaseCategory):
         self.menu.create_menu(list_of_methods, self.menu_categories, self.category_manager_menu)
 
 
-class UserManager(BaseCategory):
+class UserManager(BaseClass):
 
     def generate_account_number(self):
         digits = list(range(10))
@@ -280,7 +268,7 @@ class UserManager(BaseCategory):
         self.add_new_user_to_db(data)
         self.display_account_info(data["Number"])
         self.update_global_lists()
-        self.visual()
+        self.menu.visual()
 
     @staticmethod
     def add_new_user_to_db(data):
@@ -324,31 +312,35 @@ class UserManager(BaseCategory):
 
     def display_user_type_update_menu(self, account_number):
         update_menu_type_lst = ["Дебетовий", "Кредитний", "Назад"]
-        menu_dict = self.menu.generate_menu_dict(
-            lambda: self.update_user_type_on_debit(account_number),
-            lambda: self.update_user_type_on_credit(account_number),
-            lambda: self.display_user_data_update_menu(account_number)
-        )
+        # menu_dict = self.menu.generate_menu_dict(
+        #     lambda: self.update_user_type_on_debit(account_number),
+        #     lambda: self.update_user_type_on_credit(account_number),
+        #     lambda: self.display_user_data_update_menu(account_number))
+        #
+        # while True:
+        #     self.menu.print_subcategory_menu(update_menu_type_lst)
+        #     choice = input("Оберіть потрібний пункт: ")
+        #     if choice.isdigit() and int(choice) in menu_dict:
+        #         menu_dict[int(choice)]()
+        #         break
+        #     else:
+        #         print("Неправильний вибір, спробуйте ще раз.")
 
-        while True:
-            self.menu.print_subcategory_menu(update_menu_type_lst)
-            choice = input("Оберіть потрібний пункт: ")
-            if choice.isdigit() and int(choice) in menu_dict:
-                menu_dict[int(choice)]()
-                break
-            else:
-                print("Неправильний вибір, спробуйте ще раз.")
+        list_of_methods = (lambda: self.update_user_type_on_debit(account_number),
+                           lambda: self.update_user_type_on_credit(account_number),
+                           lambda: self.display_user_data_update_menu(account_number))
+
+        self.menu.create_menu(list_of_methods, update_menu_type_lst,
+                              lambda: self.display_user_type_update_menu(account_number))
 
     def display_user_data_update_menu(self, account_number=None):
         update_menu_lst = ["Тип", "ПІБ", "Повернутись в меню"]
-        menu_dict = self.menu.generate_menu_dict(
-            lambda: self.display_user_type_update_menu(account_number),
-            lambda: self.update_user_name(account_number),
-            self.user_manager_menu()
-        )
-        while True:
-            self.menu.print_subcategory_menu(update_menu_lst)
-            self.menu.menu_universal(menu_dict, self.display_user_data_update_menu)
+
+        list_of_methods = (lambda: self.display_user_type_update_menu(account_number),
+                           lambda: self.update_user_name(account_number),
+                           self.user_manager_menu)
+
+        self.menu.create_menu(list_of_methods, update_menu_lst, self.display_user_data_update_menu)
 
     def update_user_data(self):
         self.show_list_users()
@@ -374,7 +366,7 @@ class UserManager(BaseCategory):
         self.menu.create_menu(list_of_methods, self.bank_account, self.user_manager_menu)
 
 
-class AccountManager(CategoryManager, UserManager, BaseCategory):
+class AccountManager(CategoryManager, UserManager, BaseClass):
 
     @staticmethod
     def generate_random_date():
@@ -573,7 +565,6 @@ class AccountManager(CategoryManager, UserManager, BaseCategory):
         self.show_list_users()
         num = self.input_number()
         self.display_user_transactions(num, True)
-
         print()
 
     def account_manager_menu(self):
@@ -589,5 +580,5 @@ class AccountManager(CategoryManager, UserManager, BaseCategory):
 
 
 if __name__ == '__main__':
-    test = MenuManager(CategoryManager, UserManager, AccountManager)
-    test.main_menu()
+    test = BaseClass()
+    test.start()

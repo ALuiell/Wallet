@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch
 from sources.models import User_Accounts
 from sources import database_manager_ORM
-from sources.Wallet_DB import CategoryTwo
+from sources.Wallet_DB import UserManager
 import peewee
 
 db_path = "F:\\Python\\Wallet\\DB\\wallet_test.db"
@@ -14,7 +14,7 @@ name_for_update = "Змінений Тестовий Користувач"
 
 class TestUserAccountMethods(unittest.TestCase):
     def setUp(self):
-        self.category = CategoryTwo()
+        self.category = UserManager()
         with patch('builtins.input', side_effect=[name_for_update, '1']):
             self.category.create_user_account()
 
@@ -34,10 +34,13 @@ class TestUserAccountMethods(unittest.TestCase):
 
     def test_change_user_account_type(self):
         user_object = User_Accounts.get(Name=name_for_update)
-        with patch('builtins.input', side_effect=["2"]):
-            self.category.display_user_type_update_menu(user_object.Number)
-            user_object = User_Accounts.get(Name=name_for_update)
-            self.assertTrue(user_object.Type != "Дебетовий")
+        with patch('builtins.input', side_effect=["2", "1000"]):
+            try:
+                self.category.display_user_type_update_menu(user_object.Number)
+            except StopIteration:
+                pass  # Игнорируем исключение, так как оно указывает на успешный выход из цикла
+        user_object = User_Accounts.get(Name=name_for_update)
+        self.assertTrue(user_object.Type != "Дебетовий")
 
     def test_delete_user(self):
         user_object = User_Accounts.get(Name=name_for_update)

@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from sources.models import Category
 from sources import database_manager_ORM
-from sources import CategoryOne
+from sources.Wallet_DB import CategoryManager
 
 db_path = "F:\\Python\\Wallet\\DB\\wallet_test.db"
 db_manager = database_manager_ORM.DatabaseManager(db_path)
@@ -14,7 +14,7 @@ class TestCategoryMethods(unittest.TestCase):
     def setUp(self):
         self.category_name = "TestCategory"
         self.new_category_name = "UPCategory"
-        self.category = CategoryOne.CategoryOne()
+        self.category = CategoryManager()
 
     @patch('builtins.input', side_effect=["TestCategory"])
     def test_create_new_category(self, mock_input):
