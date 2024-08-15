@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch
 from sources.models import User_Accounts
 from sources import database_manager_ORM
-from sources.Wallet_DB import UserManager
+from sources.Wallet_ver3 import UserManager
 import peewee
 
 db_path = "F:\\Python\\Wallet\\DB\\wallet_test.db"

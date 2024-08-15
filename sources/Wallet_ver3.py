@@ -390,7 +390,7 @@ class AccountManager(CategoryManager, UserManager, BaseClass):
 
         while True:
             self.show_list_categories()
-            category_input = input("Введіть одну з категорій: ")
+            category_input = input("Введіть назву однієї з категорій: ")
             if category_input in self.user_categories:
                 break
             print("Категорія не знайдена, Спробуйте ще раз.")

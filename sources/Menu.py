@@ -28,41 +28,24 @@ class MenuManager:
         for i, elem in enumerate(lst, start=1):
             print(f"{i}.{elem}")
 
-    # def menu_loop(self, input_var, end, dictionary, menu_name=None):
-    #     if input_var > end:
-    #         print("Ви ввели неправильне значення. Спробуйте ще раз")
-    #         menu_name()
-    #         self.visual()
-    #     elif input_var <= end:
-    #         func = dictionary.get(input_var)
-    #         self.visual()
-    #         func()
-    #
-    # # checks for a data type and sends to the menu_loop function
-    # def menu_universal(self, menu_dict, menu_name):
-    #     menu_item_count = len(menu_dict)
-    #     try:
-    #         choice = int(input("Оберіть потрібний пункт: "))
-    #         self.menu_loop(choice, menu_item_count, menu_dict, menu_name)
-    #     except ValueError:
-    #         print("\nВи ввели неправильне значення. Спробуйте ще раз.\n")
+    def menu_loop(self, input_var, end, dictionary, menu_name=None):
+        if input_var > end:
+            print("Ви ввели неправильне значення. Спробуйте ще раз")
+            menu_name()
+            self.visual()
+        elif input_var <= end:
+            func = dictionary.get(input_var)
+            self.visual()
+            func()
 
-    def menu_loop(self, end, dictionary, menu_name=None):
-        while True:
-            try:
-                choice = int(input("Оберіть потрібний пункт: "))
-                if choice > end or choice < 1:
-                    raise ValueError("Неправильне значення")
-                func = dictionary.get(choice)
-                self.visual()
-                func()
-            except ValueError:
-                print("Ви ввели неправильне значення. Спробуйте ще раз.\n")
-
-    # Обработка ввода пользователя и вызов соответствующей функции
+    # checks for a data type and sends to the menu_loop function
     def menu_universal(self, menu_dict, menu_name):
         menu_item_count = len(menu_dict)
-        self.menu_loop(menu_item_count, menu_dict, menu_name)
+        try:
+            choice = int(input("Оберіть потрібний пункт: "))
+            self.menu_loop(choice, menu_item_count, menu_dict, menu_name)
+        except ValueError:
+            print("\nВи ввели неправильне значення. Спробуйте ще раз.\n")
 
     def create_menu(self, lst_of_functions, list_of_menu_options, menu_name):
         menu_dict = self.generate_menu_dict(*lst_of_functions)
@@ -82,3 +65,20 @@ class MenuManager:
     @staticmethod
     def the_end():
         quit()
+
+    # def menu_loop(self, end, dictionary, menu_name=None):
+    #     while True:
+    #         try:
+    #             choice = int(input("Оберіть потрібний пункт: "))
+    #             if choice > end or choice < 1:
+    #                 raise ValueError("Неправильне значення")
+    #             func = dictionary.get(choice)
+    #             self.visual()
+    #             func()
+    #         except ValueError:
+    #             print("Ви ввели неправильне значення. Спробуйте ще раз.\n")
+    #
+    # # Обработка ввода пользователя и вызов соответствующей функции
+    # def menu_universal(self, menu_dict, menu_name):
+    #     menu_item_count = len(menu_dict)
+    #     self.menu_loop(menu_item_count, menu_dict, menu_name)
