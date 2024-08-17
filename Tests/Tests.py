@@ -1,6 +1,6 @@
 import unittest
-import test_cat1
-import test_cat2
+import category_manager
+import user_manager
 
 
 class Test(unittest.TestCase):

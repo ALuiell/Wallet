@@ -40,10 +40,9 @@ class BaseClass:
                                           "Отримання статистики прибутків/витрат за певний період по категоріях",
                                           "Назад"]
 
-    # checking the correctness of the account number
     @staticmethod
-    def validate_account_num(num):
-        if num in lst_accounts:
+    def validate_account_num(number):
+        if number in lst_accounts:
             return True
         else:
             print("Рахунок не знайдено")
@@ -52,16 +51,16 @@ class BaseClass:
     # You pass the second argument as True if you need to check for 3.
     # If you need to check for 2, then you don't pass anything.
     @staticmethod
-    def validate_menu_choice(var, include_three=True):
+    def validate_menu_choice(variable, include_three=True):
         choices = ["1", "2"]
         if include_three:
             choices.append("3")
 
-        return var in choices
+        return variable in choices
 
     @staticmethod
-    def display_balance(account_num):
-        balance_info = User_Accounts.get(Number=account_num)
+    def display_balance(account_number):
+        balance_info = User_Accounts.get(Number=account_number)
         print("Баланс: {:,.2f} грн".format(balance_info.Balance))
 
     @staticmethod
@@ -85,8 +84,8 @@ class BaseClass:
         for elem in user_categories:
             print(elem)
 
-    def display_account_info(self, account_num):
-        row = User_Accounts.get(Number=account_num)
+    def display_account_info(self, account_number):
+        row = User_Accounts.get(Number=account_number)
         print(f"Номер Рахунку: {row.Number}")
         print(f"Тип: {row.Type}")
         print(f"ПІБ: {row.Name}")
@@ -100,12 +99,12 @@ class BaseClass:
             self.display_balance(elem.Number)
             print()
 
-    def display_user_transactions(self, account_num, show_for_user=False):
+    def display_user_transactions(self, account_number, show_for_user=False):
         list_transactions = (TransactionAll
                              .select()
                              .join_from(TransactionAll, User_Accounts)
                              .join_from(TransactionAll, Category)
-                             .where(User_Accounts.Number == account_num))
+                             .where(User_Accounts.Number == account_number))
         if list_transactions:
             if show_for_user:
                 for transaction in list_transactions:
@@ -113,7 +112,7 @@ class BaseClass:
                         f"Категорія: {transaction.Category.Name} | Дата: {transaction.Date} | Тип: {transaction.Type} "
                         f"| Сумма: {transaction.Amount}")
             else:
-                self.display_account_info(account_num)
+                self.display_account_info(account_number)
                 print("Транзакції:")
                 for count, transaction in enumerate(list_transactions, start=1):
                     print(
@@ -123,7 +122,7 @@ class BaseClass:
                 self.menu.visual()
                 return True
         else:
-            print("Транзакцій на рахунку: {} не знайдено\n".format(account_num))
+            print("Транзакцій на рахунку: {} не знайдено\n".format(account_number))
             return False
 
     def input_number(self):
@@ -216,16 +215,6 @@ class CategoryManager(BaseClass):
 
 class UserManager(BaseClass):
 
-    def generate_account_number(self):
-        digits = list(range(10))
-        random.shuffle(digits)
-        account_number = ''.join(map(str, digits[:8]))
-        if len(account_number) == 8:
-            if not self.account_number_exists(account_number):
-                return account_number
-        else:
-            self.generate_account_number()
-
     @staticmethod
     def account_number_exists(account_num):
         return db_manager.verify(User_Accounts, "Number", account_num)
@@ -241,6 +230,16 @@ class UserManager(BaseClass):
         else:
             print("ПІБ введено неправильно, спробуйте ще.")
             return False
+
+    def generate_account_number(self):
+        digits = list(range(10))
+        random.shuffle(digits)
+        account_number = ''.join(map(str, digits[:8]))
+        if len(account_number) == 8:
+            if not self.account_number_exists(account_number):
+                return account_number
+        else:
+            self.generate_account_number()
 
     def input_name(self):
         while True:
@@ -370,9 +369,8 @@ class AccountManager(CategoryManager, UserManager, BaseClass):
 
     @staticmethod
     def generate_random_date():
-        """Генерация даты и времени с учетом случайной скорости времени"""
         current_time = datetime.now()
-        time_speed = random.uniform(0, 5)  # случайное значение скорости времени
+        time_speed = random.uniform(0, 5)
         step = timedelta(days=1)
         current_time += step * time_speed
         formatted_datetime = current_time.strftime("%Y-%m-%d %H:%M:%S")
@@ -380,7 +378,6 @@ class AccountManager(CategoryManager, UserManager, BaseClass):
 
     @staticmethod
     def generate_transaction_id():
-        """Генерация id"""
         rand_num = random.randint(100000, 999999)
         new_transaction_id = f"TRX{rand_num}"
         return new_transaction_id
@@ -410,7 +407,7 @@ class AccountManager(CategoryManager, UserManager, BaseClass):
 
     @staticmethod
     def validate_date_input():
-        pattern = r"\d{4}-\d{2}-\d{2}"  # Формат YYYY-MM-DD
+        pattern = r"\d{4}-\d{2}-\d{2}"  # Format YYYY-MM-DD
         while True:
             date_start_input = input("Введіть дату початку періоду (в форматі YYYY-MM-DD): ")
             if re.match(pattern, date_start_input):
@@ -451,7 +448,6 @@ class AccountManager(CategoryManager, UserManager, BaseClass):
             else:
                 db_manager.update(User_Accounts, 'Balance', User_Accounts.Balance - amount, 'Number', account_number)
 
-    # adding new transactions
     def add_transaction(self):
         self.show_list_users()
         trans_id = self.generate_transaction_id()
@@ -470,8 +466,7 @@ class AccountManager(CategoryManager, UserManager, BaseClass):
         print("Транзакція додана: {} | {} | {}\n".format(date, category, transaction_str))
         self.display_account_info(account_num)
 
-    # delete transactions
-    def delete_transactions(self):
+    def delete_transaction(self):
         self.show_list_users()
         account_num = self.input_number()
         if self.display_user_transactions(account_num):
@@ -570,7 +565,7 @@ class AccountManager(CategoryManager, UserManager, BaseClass):
     def account_manager_menu(self):
 
         list_of_methods = (self.add_transaction,
-                           self.delete_transactions,
+                           self.delete_transaction,
                            self.transaction_transfer_,
                            self.get_expenses_income_by_period,
                            self.get_statistics,
