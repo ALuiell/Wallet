@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from sources.models import Category
 from sources import database_manager_ORM
-from sources.Wallet_ver3 import CategoryManager
+from sources.wallet_ver3 import CategoryManager
 
 db_path = "F:\\Python\\Wallet\\DB\\wallet_test.db"
 db_manager = database_manager_ORM.DatabaseManager(db_path)
