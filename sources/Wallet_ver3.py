@@ -119,7 +119,6 @@ class BaseClass:
                         f"{count}. {transaction.Date} | {transaction.Category.Name} | {transaction.Type} "
                         f"| {transaction.Amount} "
                         f"| id:{transaction.TransactionID}")
-                self.menu.visual()
                 return True
         else:
             print("Транзакцій на рахунку: {} не знайдено\n".format(account_number))
@@ -142,7 +141,6 @@ class BaseClass:
 
 
 class CategoryManager(BaseClass):
-
     @staticmethod
     def category_name_exists(name):
         return db_manager.verify(Category, "Name", name)
@@ -267,7 +265,6 @@ class UserManager(BaseClass):
         self.add_new_user_to_db(data)
         self.display_account_info(data["Number"])
         self.update_global_lists()
-        self.menu.visual()
 
     @staticmethod
     def add_new_user_to_db(data):

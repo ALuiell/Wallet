@@ -4,7 +4,7 @@ from GUI_menu import MenuManager
 class Jopa:
     def __init__(self, CategoryManager, UserManager, AccountManager):
         self.interface = MenuManager(CategoryManager, UserManager, AccountManager)
-        self.interface.main_menu()  # Спочатку створюємо меню
+        self.interface.main_menu()  #
         self.interface.start()
 
 
