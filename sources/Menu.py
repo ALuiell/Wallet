@@ -8,7 +8,6 @@ class MenuManager:
         self.user_manager = u_manager
         self.account_manager = acc_manager
 
-    # functional cycle of the menu, responsible for the operation and calling functions selected by the user
     def return_to_menu(self):
         self.main_menu()
 

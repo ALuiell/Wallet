@@ -39,7 +39,6 @@ user_accounts = {
 lst_accounts = ["12345678", "87654321", "65432198"]
 
 # lst name categories for verification
-# оставить список и потом из базы данных наполнять список недостающими
 user_categories = ["Їжа", "Одяг і взуття", "Розваги", "Транспорт", "Комунальні послуги", "Оплата житла",
                    "Здоров'я та медицина", "Подарунки та благодійність", "Краса та гігієна",
                    "Офісні витрати", "Домашні тварини", "Подорожі", "Освіта та розвиток", "Перекази"]
@@ -51,7 +50,6 @@ user_categories1 = {}
 lst_transfer = {}
 
 
-# rewrite func dictionary of info about exp
 def rewrite_dict():
     for i in user_categories:
         user_categories1[i] = {}
@@ -158,7 +156,6 @@ class Categories(ABC):
             print("Рахунок не знайдено")
             return False
 
-    # передаешь аргументов вторым тру если надо проверка на 3, если надо проверка на 2 тогда ничего не передаешь
     @staticmethod
     def validate_menu_choice(var, include_three=False):
         if not include_three:
@@ -286,7 +283,6 @@ class CategoryOne(Categories):
 
 
 class CategoryTwo(Categories):
-    # когда удаляют счет удалять из списка lst_account
     @staticmethod
     def generate_account_number():
         digits = list(range(10))
@@ -546,7 +542,6 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
 
         del lst_transfer[transaction_id]
 
-    # adding  transactions
     def add_transaction(self):
         # Show a list of user accounts for selection
         self.lst_user_acc()
