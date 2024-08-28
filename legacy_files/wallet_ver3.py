@@ -4,9 +4,11 @@ import random
 from sources import database_manager_ORM
 from models import *
 from menu import MenuManager
+import os
 
 # ----------------------------------------PATH DATABASE FILE----------------------------------------------------
-db_path = "F:\\Python\\Wallet\\DB\\wallet_test.db"
+
+db_path = os.path.join("db", "wallet_test.db")
 db_manager = database_manager_ORM.DatabaseManager(db_path)
 
 # --------------------------------------------------------------------------------------------------------------
@@ -16,10 +18,29 @@ lst_accounts = [elem.Number for elem in User_Accounts]
 
 # ----------------------------------------------------------------------------------------------------------------
 
-class ValidationUtils:
+
+class BaseClass:
+
     def __init__(self):
-        self.general_utils = GeneralUtils()
-        self.display_utils = DisplayUtils()
+        # class Menu
+        self.menu = MenuManager(CategoryManager, UserManager, AccountManager)
+
+        # CategoryManager
+        self.menu_categories = ["Додати категорію", "Видалити категорію", "Змінити дані про категорію",
+                                "Перегляд списку категорій", "Назад"]
+        self.user_categories = user_categories
+
+        # UserManager
+        self.bank_account = ["Створити новий рахунок", "Видалити рахунок", "Змінити дані рахунку",
+                             "Переглянути список рахунків", "Назад"]
+
+        # AccountManager
+        self.income_expense_management = ["Додати транзакцію",
+                                          "Видалити транзакцію",
+                                          "Переведення грошей з рахунку на рахунок",
+                                          "Перевірка витрат/прибутків за певний період",
+                                          "Отримання статистики прибутків/витрат за певний період по категоріях",
+                                          "Назад"]
 
     @staticmethod
     def validate_account_num(number):
@@ -40,83 +61,16 @@ class ValidationUtils:
         return variable in choices
 
     @staticmethod
-    def validate_name(name):
-        # pattern = r'^[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+\s+([-\']?[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+\s+)?[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+$'
-        pattern = r'^[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+\s+[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+\s+[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+$'
-        # pattern = r'^[\p{Lu}][\p{L}\s]+[\p{Lu}][\p{L}\s]+[\p{Lu}][\p{L}\s]+$'
-        match = re.match(pattern, name)
-        if match:
-            return True
-        else:
-            print("ПІБ введено неправильно, спробуйте ще.")
-            return False
-
-    def validate_money_input(self):
-        date = self.general_utils.generate_random_date()
-
-        while True:
-            self.display_utils.show_list_categories()
-            category_input = input("Введіть назву однієї з категорій: ")
-            if category_input in self.general_utils.user_categories:
-                break
-            print("Категорія не знайдена, Спробуйте ще раз.")
-
-        pattern = r"^[+\-]\d{1,10}$"
-        while True:
-            amount = input("Введіть значення транзакції у наступному форматі: "
-                           "+/- сума', наприклад, '+100' або '-100'."
-                           "Максимальна довжина - 10 символів: ")
-
-            transaction_str = amount
-            if re.match(pattern, amount):
-                trans_type = "Дохід" if amount[0] == "+" else "Витрата"
-                return date, category_input, int(amount[1:]), trans_type, transaction_str
-
-            print("Введено неправильно. \nПриклад: +100, -100 \nМаксимальна довжина - 10 символів ")
+    def display_balance(account_number):
+        balance_info = User_Accounts.get(Number=account_number)
+        print("Баланс: {:,.2f} грн".format(balance_info.Balance))
 
     @staticmethod
-    def validate_date_input():
-        pattern = r"\d{4}-\d{2}-\d{2}"  # Format YYYY-MM-DD
-        while True:
-            date_start_input = input("Введіть дату початку періоду (в форматі YYYY-MM-DD): ")
-            if re.match(pattern, date_start_input):
-                date_start = datetime.strptime(date_start_input, "%Y-%m-%d").date()
-                while True:
-                    date_end_input = input("Введіть дату кінця початку періоду (в форматі YYYY-MM-DD): ")
-                    if re.match(pattern, date_end_input):
-                        date_end = datetime.strptime(date_end_input, "%Y-%m-%d").date()
-                        if date_end > date_start:
-                            return date_start, date_end
-                        else:
-                            print("Дата кінця періоду повинна бути більше дати початку періоду.")
-                    else:
-                        print("Введена неправильна дата")
-            else:
-                print("Введена неправильна дата")
-
-
-class GeneralUtils:
-    def __init__(self):
-        # class Menu
-        self.menu = MenuManager(CategoryManager, UserManager, AccountManager)
-        self.validation_utils = ValidationUtils()
-
-        # CategoryManager
-        self.menu_categories = ["Додати категорію", "Видалити категорію", "Змінити дані про категорію",
-                                "Перегляд списку категорій", "Назад"]
-        self.user_categories = user_categories
-
-        # UserManager
-        self.bank_account = ["Створити новий рахунок", "Видалити рахунок", "Змінити дані рахунку",
-                             "Переглянути список рахунків", "Назад"]
-
-        # AccountManager
-        self.income_expense_management = ["Додати транзакцію",
-                                          "Видалити транзакцію",
-                                          "Переведення грошей з рахунку на рахунок",
-                                          "Перевірка витрат/прибутків за певний період",
-                                          "Отримання статистики прибутків/витрат за певний період по категоріях",
-                                          "Назад"]
+    def show_basic_user_info():
+        # Account Number & Name
+        for elem in User_Accounts.select(User_Accounts.Number, User_Accounts.Name):
+            print(f"Номер рахунку: {elem.Number}")
+            print(f"ПІБ: {elem.Name}\n")
 
     @staticmethod
     def update_global_lists():
@@ -128,50 +82,10 @@ class GeneralUtils:
         user_categories = new_categories
         lst_accounts = new_accounts
 
-    def input_number(self):
-        while True:
-            num = input("Введіть номер рахунку:").strip()
-            if num.isnumeric():
-                if self.validation_utils.validate_account_num(num):
-                    return num
-            else:
-                print("Введено некоректні дані, спробуйте ще раз.")
-
     @staticmethod
-    def generate_random_date():
-        current_time = datetime.now()
-        time_speed = random.uniform(0, 5)
-        step = timedelta(days=1)
-        current_time += step * time_speed
-        formatted_datetime = current_time.strftime("%Y-%m-%d %H:%M:%S")
-        return formatted_datetime
-
-    @staticmethod
-    def generate_transaction_id():
-        rand_num = random.randint(100000, 999999)
-        new_transaction_id = f"TRX{rand_num}"
-        return new_transaction_id
-
-    def start(self):
-        self.menu.main_menu()
-
-    def return_to_menu(self):
-        self.menu.main_menu()
-
-
-class DisplayUtils(GeneralUtils):
-
-    @staticmethod
-    def display_balance(account_number):
-        balance_info = User_Accounts.get(Number=account_number)
-        print("Баланс: {:,.2f} грн".format(balance_info.Balance))
-
-    @staticmethod
-    def show_basic_user_info():
-        # Account Number & Name
-        for elem in User_Accounts.select(User_Accounts.Number, User_Accounts.Name):
-            print(f"Номер рахунку: {elem.Number}")
-            print(f"ПІБ: {elem.Name}\n")
+    def show_user_categories():
+        for elem in user_categories:
+            print(elem)
 
     def display_account_info(self, account_number):
         row = User_Accounts.get(Number=account_number)
@@ -214,18 +128,23 @@ class DisplayUtils(GeneralUtils):
             print("Транзакцій на рахунку: {} не знайдено\n".format(account_number))
             return False
 
-    def show_list_categories(self):
-        print("Список категорій:")
-        print(", ".join(self.user_categories))
+    def input_number(self):
+        while True:
+            num = input("Введіть номер рахунку:").strip()
+            if num.isnumeric():
+                if self.validate_account_num(num):
+                    return num
+            else:
+                print("Введено некоректні дані, спробуйте ще раз.")
 
-    def show_detailed_user_info(self):
-        if len(lst_accounts) == 0:
-            print("Рахунків нема")
-        for i in lst_accounts:
-            self.display_account_info(i)
+    def start(self):
+        self.menu.main_menu()
+
+    def return_to_menu(self):
+        self.menu.main_menu()
 
 
-class CategoryManager(GeneralUtils, DisplayUtils, ValidationUtils):
+class CategoryManager(BaseClass):
 
     @staticmethod
     def category_name_exists(name):
@@ -283,6 +202,10 @@ class CategoryManager(GeneralUtils, DisplayUtils, ValidationUtils):
         db_manager.update(Category, "Name", new_name, "Name", name)
         print(f"Назва категорії {name} змінена на {new_name}")
 
+    def show_list_categories(self):
+        print("Список категорій:")
+        print(", ".join(self.user_categories))
+
     def category_manager_menu(self):
         list_of_methods = (self.create_new_category,
                            self.remove_category,
@@ -293,11 +216,23 @@ class CategoryManager(GeneralUtils, DisplayUtils, ValidationUtils):
         self.menu.create_menu(list_of_methods, self.menu_categories, self.category_manager_menu)
 
 
-class UserManager(GeneralUtils, DisplayUtils, ValidationUtils):
+class UserManager(BaseClass):
 
     @staticmethod
     def account_number_exists(account_num):
         return db_manager.verify(User_Accounts, "Number", account_num)
+
+    @staticmethod
+    def validate_name(name):
+        # pattern = r'^[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+\s+([-\']?[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+\s+)?[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+$'
+        pattern = r'^[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+\s+[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+\s+[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+$'
+        # pattern = r'^[\p{Lu}][\p{L}\s]+[\p{Lu}][\p{L}\s]+[\p{Lu}][\p{L}\s]+$'
+        match = re.match(pattern, name)
+        if match:
+            return True
+        else:
+            print("ПІБ введено неправильно, спробуйте ще.")
+            return False
 
     def generate_account_number(self):
         digits = list(range(10))
@@ -417,6 +352,12 @@ class UserManager(GeneralUtils, DisplayUtils, ValidationUtils):
         self.display_account_info(account_number)
         self.display_user_data_update_menu(account_number)
 
+    def show_detailed_user_info(self):
+        if len(lst_accounts) == 0:
+            print("Рахунків нема")
+        for i in lst_accounts:
+            self.display_account_info(i)
+
     def user_manager_menu(self):
         list_of_methods = (self.create_user_account,
                            self.remove_user_account,
@@ -427,7 +368,65 @@ class UserManager(GeneralUtils, DisplayUtils, ValidationUtils):
         self.menu.create_menu(list_of_methods, self.bank_account, self.user_manager_menu)
 
 
-class AccountManager(CategoryManager, UserManager, GeneralUtils):
+class AccountManager(CategoryManager, UserManager, BaseClass):
+
+    @staticmethod
+    def generate_random_date():
+        current_time = datetime.now()
+        time_speed = random.uniform(0, 5)
+        step = timedelta(days=1)
+        current_time += step * time_speed
+        formatted_datetime = current_time.strftime("%Y-%m-%d %H:%M:%S")
+        return formatted_datetime
+
+    @staticmethod
+    def generate_transaction_id():
+        rand_num = random.randint(100000, 999999)
+        new_transaction_id = f"TRX{rand_num}"
+        return new_transaction_id
+
+    def validate_money_input(self):
+        date = self.generate_random_date()
+
+        while True:
+            self.show_list_categories()
+            category_input = input("Введіть назву однієї з категорій: ")
+            if category_input in self.user_categories:
+                break
+            print("Категорія не знайдена, Спробуйте ще раз.")
+
+        pattern = r"^[+\-]\d{1,10}$"
+        while True:
+            amount = input("Введіть значення транзакції у наступному форматі: "
+                           "+/- сума', наприклад, '+100' або '-100'."
+                           "Максимальна довжина - 10 символів: ")
+
+            transaction_str = amount
+            if re.match(pattern, amount):
+                trans_type = "Дохід" if amount[0] == "+" else "Витрата"
+                return date, category_input, int(amount[1:]), trans_type, transaction_str
+
+            print("Введено неправильно. \nПриклад: +100, -100 \nМаксимальна довжина - 10 символів ")
+
+    @staticmethod
+    def validate_date_input():
+        pattern = r"\d{4}-\d{2}-\d{2}"  # Format YYYY-MM-DD
+        while True:
+            date_start_input = input("Введіть дату початку періоду (в форматі YYYY-MM-DD): ")
+            if re.match(pattern, date_start_input):
+                date_start = datetime.strptime(date_start_input, "%Y-%m-%d").date()
+                while True:
+                    date_end_input = input("Введіть дату кінця початку періоду (в форматі YYYY-MM-DD): ")
+                    if re.match(pattern, date_end_input):
+                        date_end = datetime.strptime(date_end_input, "%Y-%m-%d").date()
+                        if date_end > date_start:
+                            return date_start, date_end
+                        else:
+                            print("Дата кінця періоду повинна бути більше дати початку періоду.")
+                    else:
+                        print("Введена неправильна дата")
+            else:
+                print("Введена неправильна дата")
 
     @staticmethod
     def input_transaction_id():
@@ -480,7 +479,7 @@ class AccountManager(CategoryManager, UserManager, GeneralUtils):
                 self.update_balance(elem.Type, elem.Number.Number, elem.Amount, is_transaction_cancelled=True)
             db_manager.delete(TransactionAll, "TransactionID", transaction_id)
 
-    def transaction_transfer_(self):
+    def transaction_transfer(self):
         def get_transfer_info():
             self.display_number_and_balance()
             print("Номер відправника")
@@ -570,7 +569,7 @@ class AccountManager(CategoryManager, UserManager, GeneralUtils):
 
         list_of_methods = (self.add_transaction,
                            self.delete_transaction,
-                           self.transaction_transfer_,
+                           self.transaction_transfer,
                            self.get_expenses_income_by_period,
                            self.get_statistics,
                            self.return_to_menu)
@@ -579,5 +578,5 @@ class AccountManager(CategoryManager, UserManager, GeneralUtils):
 
 
 if __name__ == '__main__':
-    test = GeneralUtils()
+    test = BaseClass()
     test.start()

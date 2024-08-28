@@ -1,4 +1,4 @@
-# list of info about accounts | DB+
+# list of info about accounts | db+
 # полностью перенести в db и выпилить
 user_accounts = {
     "12345678": {"type": "Дебетовий", "name": "John Smith", "transactions": [], "balance": 0.0},
@@ -24,7 +24,7 @@ user_categories = ["Їжа", "Одяг і взуття", "Розваги", "Тр
                    "Офісні витрати", "Домашні тварини", "Подорожі", "Освіта та розвиток", "Перекази"]
 # -------------------------------------------------------------------------------------------------------------------
 # полностью перенести в db и выпилить
-# list of information about user_categories and transactions by these categories, ADDED NAMES WITH DICTIONARIES   |  DB+
+# list of information about user_categories and transactions by these categories, ADDED NAMES WITH DICTIONARIES   |  db+
 user_categories1 = {}
 #                                           STRUCTURE
 # user_categories1  = {
@@ -36,7 +36,7 @@ user_categories1 = {}
 
 # --------------------------------------------------------------------------------------------------------------------
 # в дб и выпилить
-# list for the transfer transaction     |  DB+
+# list for the transfer transaction     |  db+
 lst_transfer = {}
 
 #                                           STRUCTURE

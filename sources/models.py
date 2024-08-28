@@ -1,6 +1,6 @@
 from peewee import Model, SqliteDatabase, CharField, FloatField, TextField, ForeignKeyField, DateTimeField
 
-db = SqliteDatabase("F:\\Python\\Wallet\\DB\\wallet_test.db")
+db = SqliteDatabase("F:\\Python\\Wallet\\db\\wallet_test.db")
 
 
 class BaseModel(Model):

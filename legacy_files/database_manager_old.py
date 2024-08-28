@@ -207,6 +207,6 @@ class DatabaseManager:
             self.conn.rollback()
 
     def close(self):
-        print("DB Close")
+        print("db Close")
         if self.conn:
             self.conn.close()
