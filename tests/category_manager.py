@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import patch
 
-from sources.models import Category
-from sources import database_manager_ORM
+from core.models import Category
+from core import database_manager_ORM
 from legacy_files.wallet_ver3 import CategoryManager
 
 db_path = "/db\\wallet_test.db"
