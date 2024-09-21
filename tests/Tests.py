@@ -7,8 +7,8 @@ class Test(unittest.TestCase):
     def test_all(self):
         suite = unittest.TestSuite()
         loader = unittest.TestLoader()
-        suite.addTest(loader.loadTestsFromTestCase(test_cat1.TestCategoryMethods))
-        suite.addTest(loader.loadTestsFromTestCase(test_cat2.TestUserAccountMethods))
+        suite.addTest(loader.loadTestsFromTestCase(category_manager.TestCategoryMethods))
+        suite.addTest(loader.loadTestsFromTestCase(user_manager.TestUserAccountMethods))
         runner = unittest.TextTestRunner()
         runner.run(suite)
 

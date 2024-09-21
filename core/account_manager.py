@@ -1,7 +1,7 @@
 import re
 import random
 from db_config import db_manager
-from models import User_Accounts, TransactionAll, Category
+from models import UserAccounts, TransactionAll, Category
 from datetime import datetime, timedelta
 from general_utils import GeneralUtils, user_categories
 
@@ -20,12 +20,12 @@ class AccountDisplayManager:
     def __init__(self):
         self.general_utils = GeneralUtils()
 
-    def display_user_transactions(self, account_number, show_for_user=False):
+    def display_user_transactions(self, account_number: str, show_for_user=False) -> bool:
         list_transactions = (TransactionAll
                              .select()
-                             .join_from(TransactionAll, User_Accounts)
+                             .join_from(TransactionAll, UserAccounts)
                              .join_from(TransactionAll, Category)
-                             .where(User_Accounts.Number == account_number))
+                             .where(UserAccounts.Number == account_number))
         if list_transactions:
             if show_for_user:
                 for transaction in list_transactions:
@@ -48,7 +48,7 @@ class AccountDisplayManager:
 
     def display_number_and_balance(self):
         # Account Number, Name, Balance
-        for elem in User_Accounts.select(User_Accounts.Number, User_Accounts.Name):
+        for elem in UserAccounts.select(UserAccounts.Number, UserAccounts.Name):
             print(f"Номер рахунку: {elem.Number}")
             print(f"ПІБ: {elem.Name}")
             self.general_utils.display_balance(elem.Number)
@@ -90,7 +90,7 @@ class AccountValidationManager:
         date = AccountManagerUtils.generate_random_date()
 
         while True:
-            GeneralUtils.show_list_categories()
+            GeneralUtils().show_list_categories()
             category_input = input("Введіть назву однієї з категорій: ")
             if category_input in user_categories:
                 break
@@ -142,14 +142,14 @@ class AccountManager:
     def update_balance(transaction_type, account_number, amount, is_transaction_cancelled=False):
         if transaction_type == "Дохід":
             if is_transaction_cancelled:
-                db_manager.update(User_Accounts, 'Balance', User_Accounts.Balance - amount, 'Number', account_number)
+                db_manager.update(UserAccounts, 'Balance', UserAccounts.Balance - amount, 'Number', account_number)
             else:
-                db_manager.update(User_Accounts, 'Balance', User_Accounts.Balance + amount, 'Number', account_number)
+                db_manager.update(UserAccounts, 'Balance', UserAccounts.Balance + amount, 'Number', account_number)
         elif transaction_type == "Витрата":
             if is_transaction_cancelled:
-                db_manager.update(User_Accounts, 'Balance', User_Accounts.Balance + amount, 'Number', account_number)
+                db_manager.update(UserAccounts, 'Balance', UserAccounts.Balance + amount, 'Number', account_number)
             else:
-                db_manager.update(User_Accounts, 'Balance', User_Accounts.Balance - amount, 'Number', account_number)
+                db_manager.update(UserAccounts, 'Balance', UserAccounts.Balance - amount, 'Number', account_number)
 
     def add_transaction(self):
         self.general_utils.show_info_about_all_users()
@@ -157,7 +157,7 @@ class AccountManager:
         account_num = self.general_utils.input_number()
         self.general_utils.display_balance(account_num)
         date, category, amount, transaction_type, transaction_str = self.validation_manager.validate_money_input()
-        num_id, cat_id = User_Accounts.get(Number=account_num), Category.get(Name=category)
+        num_id, cat_id = UserAccounts.get(Number=account_num), Category.get(Name=category)
         db_manager.create(TransactionAll, {"Number": num_id,
                                            "Type": transaction_type,
                                            "Category": cat_id,
@@ -206,8 +206,8 @@ class AccountManager:
                 print("Недостатньо коштів на рахунку")
 
         def get_objects():
-            from_number_object = User_Accounts.get(Number=from_number)
-            to_number_object = User_Accounts.get(Number=to_number)
+            from_number_object = UserAccounts.get(Number=from_number)
+            to_number_object = UserAccounts.get(Number=to_number)
             cat_id = Category.get(Name="Перекази")
             return from_number_object, to_number_object, cat_id
 
@@ -245,8 +245,8 @@ class AccountManager:
         start_date, end_date = self.validation_manager.validate_date_input()
         income = 0
         expense = 0
-        list_transaction = (TransactionAll.select().join(User_Accounts).where(
-            (User_Accounts.Number == num) &
+        list_transaction = (TransactionAll.select().join(UserAccounts).where(
+            (UserAccounts.Number == num) &
             (TransactionAll.Date.between(start_date, end_date))))
 
         for elem in list_transaction:

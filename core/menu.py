@@ -13,10 +13,6 @@ class MenuManager:
         self.show_detailed_user_info = UserDisplayManager().show_detailed_user_info
 
     @staticmethod
-    def visual():
-        print("-------------------------------------------------------------------------------------------------------")
-
-    @staticmethod
     def generate_menu_dict(*list_menu_options):
         menu_dict = {}
         for index, option in enumerate(list_menu_options, start=1):
@@ -59,7 +55,7 @@ class MenuManager:
             try:
                 choice = int(input("Оберіть потрібний пункт: "))
                 if 1 <= choice <= len(menu_dict):
-                    self.visual()
+                    self.general_utils.visual()
                     func = menu_dict.get(choice)
                     if callable(func):
                         if func.__name__ == 'main_menu':

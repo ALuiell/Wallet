@@ -1,7 +1,9 @@
 import re
 import random
+from typing import Any
+
 from db_config import db_manager
-from models import User_Accounts, TransactionAll
+from models import UserAccounts, TransactionAll
 from general_utils import GeneralUtils
 
 
@@ -20,7 +22,7 @@ class UserDisplayManager:
     @staticmethod
     def show_basic_user_info():
         # Account Number & Name
-        for elem in User_Accounts.select(User_Accounts.Number, User_Accounts.Name):
+        for elem in UserAccounts.select(UserAccounts.Number, UserAccounts.Name):
             print(f"Номер рахунку: {elem.Number}")
             print(f"ПІБ: {elem.Name}\n")
 
@@ -31,11 +33,11 @@ class UserDisplayManager:
 class UserValidationManager:
 
     @staticmethod
-    def account_number_exists(account_num):
-        return db_manager.verify(User_Accounts, "Number", account_num)
+    def account_number_exists(account_num: str) -> bool:
+        return db_manager.verify(UserAccounts, "Number", account_num)
 
     @staticmethod
-    def validate_name(name):
+    def validate_name(name: str) -> bool:
         # pattern = r'^[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+\s+([-\']?[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+\s+)?[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+$'
         pattern = r'^[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+\s+[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+\s+[А-ЩЬЮЯЇІЄҐ][а-щьюяїієґ]+$'
         # pattern = r'^[\p{Lu}][\p{L}\s]+[\p{Lu}][\p{L}\s]+[\p{Lu}][\p{L}\s]+$'
@@ -47,7 +49,7 @@ class UserValidationManager:
             return False
 
     @staticmethod
-    def validate_menu_choice(variable, include_three=True):
+    def validate_menu_choice(variable: int, include_three=True):
         choices = ["1", "2"]
         if include_three:
             choices.append("3")
@@ -70,20 +72,20 @@ class UserManagerUtils:
             self.generate_account_number()
 
     @staticmethod
-    def validate_menu_choice(variable, include_three=True):
+    def validate_menu_choice(variable: str, include_three=True) -> bool:
         choices = ["1", "2"]
         if include_three:
             choices.append("3")
 
         return variable in choices
 
-    def input_name(self):
+    def input_name(self) -> str:
         while True:
             name = input("Введіть ПІБ: ")
             if self.validation_manager.validate_name(name):
                 return name
 
-    def input_type(self):
+    def input_type(self) -> str:
         while True:
             account_type = input("Оберіть тип: \n1.Дебетовий \n2.Кредитний \nВведіть цифру 1 або 2: ")
             if self.validate_menu_choice(account_type):
@@ -115,14 +117,14 @@ class UserManager:
         self.general_utils.visual()
 
     @staticmethod
-    def add_new_user_to_db(data):
-        db_manager.create(User_Accounts, data)
+    def add_new_user_to_db(data: dict[str, Any]) -> None:
+        db_manager.create(UserAccounts, data)
         print('Рахунок створено\n')
 
     def remove_user_account(self):
         self.general_utils.show_basic_users_info()
         number_for_delete = self.general_utils.input_number()
-        number_id = User_Accounts.get(Number=number_for_delete)
+        number_id = UserAccounts.get(Number=number_for_delete)
         if self.validation_manager.account_number_exists(number_for_delete):
             self.delete_user_account_from_db(number_for_delete, number_id)
             self.general_utils.update_global_lists()
@@ -130,8 +132,8 @@ class UserManager:
             self.remove_user_account()
 
     @staticmethod
-    def delete_user_account_from_db(number, number_id):
-        db_manager.delete(User_Accounts, "Number", number)
+    def delete_user_account_from_db(number: str, number_id: int) -> None:
+        db_manager.delete(UserAccounts, "Number", number)
         db_manager.delete(TransactionAll, "Number", number_id)
         print(f"Рахунок {number} видалено \n")
 
@@ -156,7 +158,7 @@ class UserManager:
     def display_user_type_update_menu(self, menu_manager):
         # remove the option to choose an account because there are only 2 options
         # account_types = ['Дебетовий', "Кредитний"]
-        # account = User_Accounts.get_or_none(Number=self.data_store.selected_account_number)
+        # account = UserAccounts.get_or_none(Number=self.data_store.selected_account_number)
         # if account.Type == account_types[0]:
         #     while True:
         #         user_confirmation = input(
@@ -180,22 +182,21 @@ class UserManager:
             if self.validation_manager.validate_name(new_name):
                 # for test
                 if test_account_number is None:
-                    db_manager.update(User_Accounts, "Name", new_name, "Number",
+                    db_manager.update(UserAccounts, "Name", new_name, "Number",
                                       self.data_store.selected_account_number)
                 else:
-                    db_manager.update(User_Accounts, "Name", new_name, "Number",
+                    db_manager.update(UserAccounts, "Name", new_name, "Number",
                                       test_account_number)
                 print("Інформацію оновлено")
                 self.general_utils.display_account_info(self.data_store.selected_account_number)
-                return
 
     def update_user_type_on_credit(self):
-        db_manager.update(User_Accounts, "Type", "Кредитний", "Number", self.data_store.selected_account_number)
+        db_manager.update(UserAccounts, "Type", "Кредитний", "Number", self.data_store.selected_account_number)
         print("Тип рахунку змінено на Кредитний \n")
         self.general_utils.display_account_info(self.data_store.selected_account_number)
 
     def update_user_type_on_debit(self):
-        db_manager.update(User_Accounts, "Type", "Дебетовий", "Number", self.data_store.selected_account_number)
+        db_manager.update(UserAccounts, "Type", "Дебетовий", "Number", self.data_store.selected_account_number)
         print("Тип рахунку змінено на Дебетовий \n")
         self.general_utils.display_account_info(self.data_store.selected_account_number)
 

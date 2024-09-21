@@ -78,7 +78,7 @@ categories = cursor.fetchall()
 user_categories = [category[0] for category in categories]
 
 # ---------------------------------------------------------------------------------------------------------------
-cursor.execute("SELECT Number FROM User_Accounts")
+cursor.execute("SELECT Number FROM UserAccounts")
 numbers = cursor.fetchall()
 
 # lst number accounts for verification
@@ -206,7 +206,7 @@ class Categories(ABC):
         print()
 
     def display_num_balance(self):
-        cursor.execute("SELECT NUMBER, Name FROM User_Accounts")
+        cursor.execute("SELECT NUMBER, Name FROM UserAccounts")
         numbers_balance = cursor.fetchall()
         for elem in numbers_balance:
             print("Номер рахунку: {}".format(elem[0]))
@@ -216,7 +216,7 @@ class Categories(ABC):
 
     def display_all_num(self):
         for elem in lst_accounts:
-            cursor.execute("SELECT Name FROM User_Accounts WHERE Number = ?", (elem,))
+            cursor.execute("SELECT Name FROM UserAccounts WHERE Number = ?", (elem,))
             name = cursor.fetchall()
             print("Номер рахунку: {}".format(elem))
             print("ПІБ: {}\n".format(name[0][0]))
@@ -377,7 +377,7 @@ class CategoryTwo(Categories):
         account_name = self.input_name()
         account_type = self.input_type()
         if account_num in lst_accounts:
-            cursor.execute("INSERT INTO User_Accounts (Number, Type, Name, Balance) "
+            cursor.execute("INSERT INTO UserAccounts (Number, Type, Name, Balance) "
                            "VALUES (?, ?, ?, 0)", (account_num, account_type, account_name))
             db.commit()
 
@@ -389,7 +389,7 @@ class CategoryTwo(Categories):
         self.lst_user_acc()
         num_acc = input("Введіть номер рахунку для видалення: ")
         if num_acc in lst_accounts:
-            cursor.execute("DELETE FROM User_Accounts WHERE Number = ?", (num_acc,))
+            cursor.execute("DELETE FROM UserAccounts WHERE Number = ?", (num_acc,))
             lst_accounts.remove(num_acc)
             if num_acc not in lst_accounts:
                 print(f"Рахунок {num_acc} видалено \n")
@@ -408,13 +408,13 @@ class CategoryTwo(Categories):
                 # проверять ввод через функцию  validate_menu_choice
                 what_type = input("Оберіть пункт: ")
                 if what_type == "1":
-                    cursor.execute("UPDATE User_Accounts SET Type = ? WHERE Number = ?", ("Дебетовий", input_acc))
+                    cursor.execute("UPDATE UserAccounts SET Type = ? WHERE Number = ?", ("Дебетовий", input_acc))
                     print("Тип рахунку змінено на Дебетовий \n")
                     self.display_account_info(input_acc)
                     return
 
                 elif what_type == "2":
-                    cursor.execute("UPDATE User_Accounts SET Type = ? WHERE Number = ?", ("Кредитний", input_acc))
+                    cursor.execute("UPDATE UserAccounts SET Type = ? WHERE Number = ?", ("Кредитний", input_acc))
                     print("Тип рахунку змінено на Кредитний \n")
                     self.display_account_info(input_acc)
                     return
@@ -430,7 +430,7 @@ class CategoryTwo(Categories):
             while True:
                 new_name = input("Введіть новий ПІБ: ")
                 if self.validate_name(new_name):
-                    cursor.execute("UPDATE User_Accounts SET Name = ? WHERE Number = ?", (new_name, input_acc))
+                    cursor.execute("UPDATE UserAccounts SET Name = ? WHERE Number = ?", (new_name, input_acc))
                     print("Інформацію оновлено")
                     self.display_account_info(input_acc)
                     self.update_menu(input_acc)
@@ -575,9 +575,9 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
         cursor.execute("INSERT INTO TransactionAll (Number, Type, Category, TransactionDate, TransactionID, Amount) "
                        "VALUES (?,?,?,?,?,?)", (account_num, trans_type, category, date, trans_id, amount))
         if trans_type == "Витрата":
-            cursor.execute("UPDATE User_Accounts SET Balance = Balance - ? WHERE Number = ?", (amount, account_num))
+            cursor.execute("UPDATE UserAccounts SET Balance = Balance - ? WHERE Number = ?", (amount, account_num))
         elif trans_type == "Дохід":
-            cursor.execute("UPDATE User_Accounts SET Balance = Balance + ? WHERE Number = ?", (amount, account_num))
+            cursor.execute("UPDATE UserAccounts SET Balance = Balance + ? WHERE Number = ?", (amount, account_num))
 
         print("Транзакція додана: {} | {} | {}\n".format(date, category, trans))
         db.commit()
@@ -593,10 +593,10 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
             list_transaction_del = cursor.fetchall()
             for elem in list_transaction_del:
                 if elem[1] == "Витрата":
-                    cursor.execute("UPDATE User_Accounts SET Balance = Balance + ? WHERE Number = ? ",
+                    cursor.execute("UPDATE UserAccounts SET Balance = Balance + ? WHERE Number = ? ",
                                    (elem[5], elem[0]))
                 if elem[1] == "Дохід":
-                    cursor.execute("UPDATE User_Accounts SET Balance = Balance - ? WHERE Number = ? ",
+                    cursor.execute("UPDATE UserAccounts SET Balance = Balance - ? WHERE Number = ? ",
                                    (elem[5], elem[0]))
 
             cursor.execute("DELETE FROM TransactionAll WHERE TransactionID = ?", (transaction_id,))
@@ -616,7 +616,7 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
         transfer_id = self.generate_transaction_id()
         date1 = self.generate_random_date()
         category = "Перекази"
-        cursor.execute("SELECT Balance FROM User_Accounts WHERE Number = {}".format(from_num1))
+        cursor.execute("SELECT Balance FROM UserAccounts WHERE Number = {}".format(from_num1))
         balance_num1 = cursor.fetchall()
         if int(balance_num1[0][0]) != 0:
             while True:
@@ -643,10 +643,10 @@ class CategoryThree(CategoryOne, CategoryTwo, Categories):
                     (to_num2, "Дохід", category, date1, transfer_id, amount))
                 # UPDATE BALANCE FROM_NUM
                 cursor.execute(
-                    "UPDATE User_Accounts SET Balance = Balance - {} WHERE Number = {}".format(amount, from_num1))
+                    "UPDATE UserAccounts SET Balance = Balance - {} WHERE Number = {}".format(amount, from_num1))
                 # UPDATE BALANCE TO_NUM
                 cursor.execute(
-                    "UPDATE User_Accounts SET Balance = Balance + {} WHERE Number = {}".format(amount, to_num2))
+                    "UPDATE UserAccounts SET Balance = Balance + {} WHERE Number = {}".format(amount, to_num2))
 
                 # INSERT DATA IN Transaction_Transfer
                 cursor.execute(

@@ -5,7 +5,7 @@ db_path = "/db\\wallet_test.db"
 
 # --------------------------------------------------------------------------------------------------------------
 user_categories = [elem.Name for elem in Category]
-lst_accounts = [elem.Number for elem in User_Accounts]
+lst_accounts = [elem.Number for elem in UserAccounts]
 
 
 # ----------------------------------------------------------------------------------------------------------------
@@ -16,7 +16,7 @@ class GeneralUtils:
         global user_categories, lst_accounts
 
         new_categories = [elem.Name for elem in Category]
-        new_accounts = [elem.Number for elem in User_Accounts]
+        new_accounts = [elem.Number for elem in UserAccounts]
 
         user_categories = new_categories
         lst_accounts = new_accounts
@@ -48,7 +48,7 @@ class GeneralUtils:
         self.visual()
 
     def display_account_info(self, account_number):
-        row = User_Accounts.get(Number=account_number)
+        row = UserAccounts.get(Number=account_number)
         print(f"Номер Рахунку: {row.Number}")
         print(f"Тип: {row.Type}")
         print(f"ПІБ: {row.Name}")
@@ -56,7 +56,7 @@ class GeneralUtils:
         print()
 
     def display_number_and_balance(self):
-        for elem in User_Accounts.select(User_Accounts.Number, User_Accounts.Name):
+        for elem in UserAccounts.select(UserAccounts.Number, UserAccounts.Name):
             print(f"Номер рахунку: {elem.Number}")
             print(f"ПІБ: {elem.Name}")
             self.display_balance(elem.Number)
@@ -64,13 +64,13 @@ class GeneralUtils:
 
     @staticmethod
     def display_balance(account_number):
-        balance_info = User_Accounts.get(Number=account_number)
+        balance_info = UserAccounts.get(Number=account_number)
         print("Баланс: {:,.2f} грн".format(balance_info.Balance))
 
     @staticmethod
     def show_basic_users_info():
         # Account Number & Name
-        for elem in User_Accounts.select(User_Accounts.Number, User_Accounts.Name):
+        for elem in UserAccounts.select(UserAccounts.Number, UserAccounts.Name):
             print(f"Номер рахунку: {elem.Number}")
 
     def show_info_about_all_users(self):

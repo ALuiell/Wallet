@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import patch
-from sources.models import User_Accounts
-from sources import database_manager_ORM
-from sources.user_manager import UserManager
+from core.models import UserAccounts
+from core import database_manager_ORM
+from core.user_manager import UserManager
 import peewee
 
 db_path = "/db\\wallet_test.db"
@@ -22,35 +22,35 @@ class TestUserAccountMethods(unittest.TestCase):
         name = "Тестовий Новий Користувач"
         with patch('builtins.input', side_effect=[name, '1']):
             self.user.create_user_account()
-        self.assertTrue(User_Accounts.select().where(User_Accounts.Name == name).exists())
-        user_object = User_Accounts.get(Name=name)
+        self.assertTrue(UserAccounts.select().where(UserAccounts.Name == name).exists())
+        user_object = UserAccounts.get(Name=name)
         user_object.delete_instance()
 
     def test_change_user_account_name(self):
-        user_object = User_Accounts.get(Name=name_for_update)
+        user_object = UserAccounts.get(Name=name_for_update)
         with patch('builtins.input', side_effect=[name_for_update]):
             self.user.update_user_name(user_object.Number)
-            self.assertTrue(User_Accounts.select().where(User_Accounts.Name == name_for_update).exists())
+            self.assertTrue(UserAccounts.select().where(UserAccounts.Name == name_for_update).exists())
 
     def test_change_user_account_type(self):
-        user_object = User_Accounts.get(Name=name_for_update)
+        user_object = UserAccounts.get(Name=name_for_update)
         with patch('builtins.input', side_effect=["2", "1000"]):
             try:
                 self.user.display_user_type_update_menu(user_object.Number)
             except StopIteration:
                 pass  # Игнорируем исключение, так как оно указывает на успешный выход из цикла
-        user_object = User_Accounts.get(Name=name_for_update)
+        user_object = UserAccounts.get(Name=name_for_update)
         self.assertTrue(user_object.Type != "Дебетовий")
 
     def test_delete_user(self):
-        user_object = User_Accounts.get(Name=name_for_update)
+        user_object = UserAccounts.get(Name=name_for_update)
         with patch('builtins.input', side_effect=[user_object.Number]):
             self.user.remove_user_account()
-            self.assertFalse(User_Accounts.select().where(User_Accounts.Name == name_for_update).exists())
+            self.assertFalse(UserAccounts.select().where(UserAccounts.Name == name_for_update).exists())
 
     def tearDown(self):
         try:
-            user_object = User_Accounts.get(Name=name_for_update)
+            user_object = UserAccounts.get(Name=name_for_update)
             user_object.delete_instance()
         except peewee.DoesNotExist:
             pass

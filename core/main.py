@@ -1,7 +1,7 @@
 from menu import MenuManager
 from category_manager import CategoryManager
-from sources.account_manager import AccountManager
-from sources.user_manager import UserManager
+from core.account_manager import AccountManager
+from core.user_manager import UserManager
 
 if __name__ == '__main__':
     category_manager = CategoryManager()
