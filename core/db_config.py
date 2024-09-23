@@ -1,6 +1,6 @@
 import os
-from models import *
-from core import database_manager_ORM
-
+from core.database_manager_ORM import DatabaseManager
 db_path = os.path.join("db", "wallet_test.db")
-db_manager = database_manager_ORM.DatabaseManager(db_path)
+db_manager = DatabaseManager(db_path)
+
+

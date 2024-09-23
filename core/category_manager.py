@@ -1,6 +1,7 @@
 from db_config import db_manager
 from models import Category
 from general_utils import GeneralUtils
+import re
 
 
 class CategoryDataStore:
@@ -21,6 +22,12 @@ class CategoryDisplayManager:
 
 
 class CategoryValidationManager:
+
+    @staticmethod
+    def validate_category_name(category_name):
+        pattern = r'^[a-zA-Zа-яА-ЯєЄїЇіІґҐ\'\s]+$'
+        return bool(re.match(pattern, category_name))
+
     @staticmethod
     def category_name_exists(name: str) -> bool:
         return db_manager.verify(Category, "Name", name)
@@ -46,13 +53,17 @@ class CategoryManager:
     def create_new_category(self):
         print("Існуючі категорії:")
         self.display_manager.show_categories_multiline()
-        name = input("Введіть назву нової категорії: ").strip()
-        with db_manager:
-            if not self.validation_manager.category_name_exists(name):
-                self.add_category_to_db(name)
-                self.general_utils.update_global_lists()
+        while True:
+            name = input("Введіть назву нової категорії: ").strip()
+            if self.validation_manager.validate_category_name(name):
+                if not self.validation_manager.category_name_exists(name):
+                    self.add_category_to_db(name)
+                    self.general_utils.update_global_lists()
+                    return
+                else:
+                    print("Категорія з такою назвою вже існує")
             else:
-                print("Категорія з такою назвою вже існує")
+                print("Неправильний формат назви категорії. Використовуйте лише букви.")
 
     @staticmethod
     def add_category_to_db(name: str):
@@ -61,12 +72,16 @@ class CategoryManager:
 
     def remove_category(self):
         self.display_manager.show_categories_multiline()
-        name = input("Введіть назву категорії: ").strip()
-        if self.validation_manager.category_name_exists(name):
-            self.delete_category_from_db(name)
-            self.general_utils.update_global_lists()
-        else:
-            print(f"Категорію з назвою {name} не знайдено")
+        while True:
+            name = input("Введіть назву категорії: ").strip()
+            if self.validation_manager.validate_category_name(name):
+                if self.validation_manager.category_name_exists(name):
+                    self.delete_category_from_db(name)
+                    self.general_utils.update_global_lists()
+                else:
+                    print(f"Категорію з назвою {name} не знайдено")
+            else:
+                print("Неправильний формат назви категорії. Використовуйте лише букви.")
 
     @staticmethod
     def delete_category_from_db(name: str):

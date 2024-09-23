@@ -1,7 +1,7 @@
 import re
 from datetime import datetime, timedelta
 import random
-from core import database_manager_ORM
+from core.database_manager_ORM import DatabaseManager
 from core.models import *
 from menu_old import MenuManager
 import os
@@ -9,7 +9,7 @@ import os
 # ----------------------------------------PATH DATABASE FILE----------------------------------------------------
 
 db_path = os.path.join("db", "wallet_test.db")
-db_manager = database_manager_ORM.DatabaseManager(db_path)
+db_manager = DatabaseManager(db_path)
 
 # --------------------------------------------------------------------------------------------------------------
 user_categories = [elem.Name for elem in Category]
