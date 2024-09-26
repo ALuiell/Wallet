@@ -93,6 +93,8 @@ class UserManagerUtils:
                     return "Дебетовий"
                 elif account_type == "2":
                     return "Кредитний"
+            else:
+                print("Неправильний формат, спробуйте ще раз")
 
 
 class UserManager:
@@ -152,7 +154,6 @@ class UserManager:
         list_of_methods = (self.display_user_type_update_menu,
                            self.update_user_name,
                            lambda: self.user_manager_menu(menu_manager))
-
         menu_manager.create_menu(list_of_methods, update_menu_lst)
 
     def display_user_type_update_menu(self, menu_manager):
@@ -170,11 +171,23 @@ class UserManager:
 
         update_menu_type_lst = ["Дебетовий", "Кредитний", "Назад"]
 
-        list_of_methods = (self.update_user_type_on_debit,
-                           self.update_user_type_on_credit,
+        list_of_methods = (lambda: self.update_user_type_on_debit(menu_manager),
+                           lambda: self.update_user_type_on_credit(menu_manager),
                            lambda: self.display_user_data_update_menu(menu_manager))
-
+        self.general_utils.show_user_type_info(self.data_store.selected_account_number)
         menu_manager.create_menu(list_of_methods, update_menu_type_lst)
+
+    def update_user_type_on_credit(self, menu_manager):
+        db_manager.update(UserAccounts, "Type", "Кредитний", "Number", self.data_store.selected_account_number)
+        print("Тип рахунку змінено на Кредитний \n")
+        self.general_utils.display_account_info(self.data_store.selected_account_number)
+        self.display_user_data_update_menu(menu_manager)
+
+    def update_user_type_on_debit(self, menu_manager):
+        db_manager.update(UserAccounts, "Type", "Дебетовий", "Number", self.data_store.selected_account_number)
+        print("Тип рахунку змінено на Дебетовий \n")
+        self.general_utils.display_account_info(self.data_store.selected_account_number)
+        self.display_user_data_update_menu(menu_manager)
 
     def update_user_name(self, test_account_number=None):
         while True:
@@ -187,18 +200,10 @@ class UserManager:
                 else:
                     db_manager.update(UserAccounts, "Name", new_name, "Number",
                                       test_account_number)
+
                 print("Інформацію оновлено")
                 self.general_utils.display_account_info(self.data_store.selected_account_number)
-
-    def update_user_type_on_credit(self):
-        db_manager.update(UserAccounts, "Type", "Кредитний", "Number", self.data_store.selected_account_number)
-        print("Тип рахунку змінено на Кредитний \n")
-        self.general_utils.display_account_info(self.data_store.selected_account_number)
-
-    def update_user_type_on_debit(self):
-        db_manager.update(UserAccounts, "Type", "Дебетовий", "Number", self.data_store.selected_account_number)
-        print("Тип рахунку змінено на Дебетовий \n")
-        self.general_utils.display_account_info(self.data_store.selected_account_number)
+            return
 
     def user_manager_menu(self, menu_manager):
         list_of_methods = (

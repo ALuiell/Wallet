@@ -72,13 +72,19 @@ class GeneralUtils:
         # Account Number & Name
         for elem in UserAccounts.select(UserAccounts.Number, UserAccounts.Name):
             print(f"Номер рахунку: {elem.Number}")
+            print(f"ПІБ: {elem.Name}\n")
 
     def show_info_about_all_users(self):
-        # # Account Number, Account Type, Name, Balance
+        # Account Number, Account Type, Name, Balance
         if len(lst_accounts) == 0:
             print("Рахунків нема")
         for i in lst_accounts:
             self.display_account_info(i)
+
+    @staticmethod
+    def show_user_type_info(account_number):
+        type_info = UserAccounts.get(Number=account_number)
+        print(f"Ваш поточний тип рахунку: {type_info.Type}")
 
     @staticmethod
     def visual():

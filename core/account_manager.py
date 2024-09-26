@@ -178,14 +178,15 @@ class AccountManager:
             for elem in list_transaction_for_del:
                 self.update_balance(elem.Type, elem.Number.Number, elem.Amount, is_transaction_cancelled=True)
             db_manager.delete(TransactionAll, "TransactionID", transaction_id)
+            print("Транзакція видалено успішно, баланс оновлено.")
 
     def transaction_transfer(self):
         def get_transfer_info():
             self.general_utils.display_number_and_balance()
             print("Номер відправника")
             from_num = self.general_utils.input_number()
-            print("Номер рахунку: {}".format(from_number))
-            self.general_utils.display_balance(from_number)
+            print(f"Номер рахунку: {from_num}")
+            self.general_utils.display_balance(from_num)
             print()
             print("Номер одержувача")
             to_num = self.general_utils.input_number()
