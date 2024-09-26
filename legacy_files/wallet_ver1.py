@@ -4,7 +4,7 @@ import random
 from abc import ABC
 
 """Version 1.0"""
-"""Wallet without DB"""
+"""Wallet without db"""
 
 """
                                                 Database TABLE

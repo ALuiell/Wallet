@@ -8,9 +8,12 @@ class MenuManager:
         self.user_manager = u_manager
         self.account_manager = acc_manager
 
+<<<<<<<< HEAD:legacy_files/menu.py
     def return_to_menu(self):
         self.main_menu()
 
+========
+>>>>>>>> refs/heads/update_code_structure:legacy_files/menu_old.py
     @staticmethod
     def visual():
         print("-------------------------------------------------------------------------------------------------------")

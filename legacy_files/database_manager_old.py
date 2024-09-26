@@ -138,8 +138,8 @@ class DatabaseManager:
             :param where_value: Value to match in the where_column (var).
 
         Example:
-            #  "UPDATE User_Accounts SET Balance = Balance - ? WHERE Number = ?"
-            update("User_Accounts", "Balance", f"Balance - {100}", "Number", "74132896")
+            #  "UPDATE UserAccounts SET Balance = Balance - ? WHERE Number = ?"
+            update("UserAccounts", "Balance", f"Balance - {100}", "Number", "74132896")
 
         """
         try:
@@ -188,7 +188,7 @@ class DatabaseManager:
             return "Курсор не створено"
 
     def get_account_numbers(self):
-        query = "SELECT Number FROM User_Accounts"
+        query = "SELECT Number FROM UserAccounts"
         try:
             cursor = self.create_cursor()
             cursor.execute(query)
@@ -207,6 +207,6 @@ class DatabaseManager:
             self.conn.rollback()
 
     def close(self):
-        print("DB Close")
+        print("db Close")
         if self.conn:
             self.conn.close()
