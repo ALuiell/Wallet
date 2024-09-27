@@ -1,12 +1,8 @@
 import unittest
 from unittest.mock import patch
-
 from core.models import Category
-from core import database_manager_ORM
-from legacy_files.wallet_ver3 import CategoryManager
-
-db_path = "/db\\wallet_test.db"
-db_manager = database_manager_ORM.DatabaseManager(db_path)
+from core.category_manager import CategoryManager
+from core.db_config import db_manager
 
 
 class TestCategoryMethods(unittest.TestCase):
@@ -21,18 +17,6 @@ class TestCategoryMethods(unittest.TestCase):
         self.category.create_new_category()
         self.assertTrue(Category.select().where(Category.Name == self.category_name).exists())
 
-    @patch('builtins.input', side_effect=["TestCategory"])
-    def test_create_existing_category(self, mock_input):
-        self.category.create_new_category()
-        self.assertTrue(Category.select().where(Category.Name == self.category_name).exists())
-
-    def test_remove_category(self):
-        db_manager.create(Category, {"Name": self.category_name})
-        self.assertTrue(Category.select().where(Category.Name == self.category_name).exists())
-        with patch('builtins.input', return_value=self.category_name):
-            self.category.remove_category()
-        self.assertFalse(Category.select().where(Category.Name == self.category_name).exists())
-
     def test_update_category(self):
         db_manager.create(Category, {"Name": self.category_name})
         self.assertTrue(Category.select().where(Category.Name == self.category_name).exists())
@@ -41,6 +25,16 @@ class TestCategoryMethods(unittest.TestCase):
             self.category.update_category()
 
         self.assertTrue(Category.select().where(Category.Name == self.new_category_name).exists())
+
+    def test_remove_category(self):
+        db_manager.create(Category, {"Name": self.category_name})
+        self.assertTrue(Category.select().where(Category.Name == self.category_name).exists())
+
+        # Используем side_effect, чтобы input возвращал правильное имя категории с первого раза
+        with patch('builtins.input', return_value=self.category_name):
+            self.category.remove_category()
+
+        self.assertFalse(Category.select().where(Category.Name == self.category_name).exists())
 
     def tearDown(self):
         db_manager.delete(Category, "Name", self.category_name)

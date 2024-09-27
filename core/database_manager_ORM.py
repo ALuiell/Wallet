@@ -1,5 +1,5 @@
 # https://docs.peewee-orm.com/en/latest/
-from models import Category, TransactionAll, UserAccounts
+from core.models import Category, TransactionAll, UserAccounts
 from peewee import *
 
 

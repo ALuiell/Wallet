@@ -1,4 +1,4 @@
-from models import *
+from core.models import *
 
 # ----------------------------------------PATH DATABASE FILE----------------------------------------------------
 db_path = "/db\\wallet_test.db"
