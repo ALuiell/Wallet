@@ -19,13 +19,13 @@ class DatabaseManager:
     def create(model_class, data):
         # update under transaction
         """
-            Insert data into a table.
+            insert data into a table.
 
             Args:
                 model_class: Peewee model class for the table where data will be inserted.
                 data (dict): A dictionary containing column names as keys and values as values.
 
-            Example:
+            example:
                 - For a single-column insertion:
                   create_record(Category, {"Name": "Pool"})
 
@@ -42,7 +42,7 @@ class DatabaseManager:
     @staticmethod
     def update(model_class, set_column, set_value, where_column, where_value):
         """
-            Update records in the database.
+            update records in the database.
 
             Args:
                 model_class: The Peewee model representing the database table.
@@ -60,7 +60,7 @@ class DatabaseManager:
     @staticmethod
     def delete(model_class, where_field, where_value):
         """
-        Delete data into a table.
+        delete data into a table.
 
         Args:
              model_class: The Peewee model class for the table in which the data will be inserted.
@@ -82,6 +82,32 @@ class DatabaseManager:
 
         """
         return model_class.select().where(getattr(model_class, where_field) == where_value).exists()
+
+    @staticmethod
+    def verify2(model_class, conditions):
+        # need test
+        """
+        Verifies the existence of a record in the database based on dynamically provided conditions.
+
+        :param model_class: The model class on which the query is being performed.
+        :param conditions: A list of tuples where each tuple contains the field name and the value to check.
+                           Example: [('field1', value1), ('field2', value2)]
+        :return: True if the record exists, False if it does not.
+        """
+        query = model_class.select()
+
+        condition_expression = None
+        for field, value in conditions:
+            current_condition = (getattr(model_class, field) == value)
+            if condition_expression is None:
+                condition_expression = current_condition
+            else:
+                condition_expression &= current_condition
+
+        if condition_expression is not None:
+            query = query.where(condition_expression)
+
+        return query.exists()
 
     def close(self):
         self.database.close()

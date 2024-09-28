@@ -1,10 +1,9 @@
 import re
 import random
 from typing import Any
-
-from db_config import db_manager
-from models import UserAccounts, TransactionAll
-from general_utils import GeneralUtils
+from core.db_config import db_manager
+from core.models import UserAccounts, TransactionAll
+from core.general_utils import GeneralUtils
 
 
 class UserDataStore:
@@ -104,8 +103,9 @@ class UserManager:
         self.validation_manager = UserValidationManager()
         self.general_utils = GeneralUtils()
         self.utils = UserManagerUtils()
+        self.test_account_number = None
 
-    def create_user_account(self):
+    def create_user_account(self, test=False):
         account_number = self.utils.generate_account_number()
         account_name = self.utils.input_name()
         account_type = self.utils.input_type()
@@ -117,27 +117,13 @@ class UserManager:
         self.general_utils.display_account_info(data["Number"])
         self.general_utils.update_global_lists()
         self.general_utils.visual()
+        if test:
+            self.test_account_number = account_number
 
     @staticmethod
     def add_new_user_to_db(data: dict[str, Any]) -> None:
         db_manager.create(UserAccounts, data)
         print('Рахунок створено\n')
-
-    def remove_user_account(self):
-        self.general_utils.show_basic_users_info()
-        number_for_delete = self.general_utils.input_number()
-        number_id = UserAccounts.get(Number=number_for_delete)
-        if self.validation_manager.account_number_exists(number_for_delete):
-            self.delete_user_account_from_db(number_for_delete, number_id)
-            self.general_utils.update_global_lists()
-        else:
-            self.remove_user_account()
-
-    @staticmethod
-    def delete_user_account_from_db(number: str, number_id: int) -> None:
-        db_manager.delete(UserAccounts, "Number", number)
-        db_manager.delete(TransactionAll, "Number", number_id)
-        print(f"Рахунок {number} видалено \n")
 
     def update_user_data(self, menu_manager):
         self.display_manager.show_detailed_user_info()
@@ -177,17 +163,25 @@ class UserManager:
         self.general_utils.show_user_type_info(self.data_store.selected_account_number)
         menu_manager.create_menu(list_of_methods, update_menu_type_lst)
 
-    def update_user_type_on_credit(self, menu_manager):
-        db_manager.update(UserAccounts, "Type", "Кредитний", "Number", self.data_store.selected_account_number)
-        print("Тип рахунку змінено на Кредитний \n")
-        self.general_utils.display_account_info(self.data_store.selected_account_number)
-        self.display_user_data_update_menu(menu_manager)
+    def update_user_type_on_credit(self, menu_manager=None, test_account_number=None):
+        if test_account_number is None:
+            db_manager.update(UserAccounts, "Type", "Кредитний", "Number", self.data_store.selected_account_number)
+            print("Тип рахунку змінено на Кредитний \n")
+            self.general_utils.display_account_info(self.data_store.selected_account_number)
+            self.display_user_data_update_menu(menu_manager)
+        else:
+            db_manager.update(UserAccounts, "Type", "Кредитний", "Number", test_account_number)
+            print("Тип рахунку змінено на Кредитний \n")
 
-    def update_user_type_on_debit(self, menu_manager):
-        db_manager.update(UserAccounts, "Type", "Дебетовий", "Number", self.data_store.selected_account_number)
-        print("Тип рахунку змінено на Дебетовий \n")
-        self.general_utils.display_account_info(self.data_store.selected_account_number)
-        self.display_user_data_update_menu(menu_manager)
+    def update_user_type_on_debit(self, menu_manager=None, test_account_number=None):
+        if test_account_number is None:
+            db_manager.update(UserAccounts, "Type", "Дебетовий", "Number", self.data_store.selected_account_number)
+            print("Тип рахунку змінено на Дебетовий \n")
+            self.general_utils.display_account_info(self.data_store.selected_account_number)
+            self.display_user_data_update_menu(menu_manager)
+        else:
+            db_manager.update(UserAccounts, "Type", "Дебетовий", "Number", test_account_number)
+            print("Тип рахунку змінено на Дебетовий \n")
 
     def update_user_name(self, test_account_number=None):
         while True:
@@ -197,13 +191,30 @@ class UserManager:
                 if test_account_number is None:
                     db_manager.update(UserAccounts, "Name", new_name, "Number",
                                       self.data_store.selected_account_number)
+                    self.general_utils.display_account_info(self.data_store.selected_account_number)
                 else:
                     db_manager.update(UserAccounts, "Name", new_name, "Number",
                                       test_account_number)
+                    self.general_utils.display_account_info(test_account_number)
 
                 print("Інформацію оновлено")
-                self.general_utils.display_account_info(self.data_store.selected_account_number)
             return
+
+    def remove_user_account(self):
+        self.general_utils.show_basic_users_info()
+        number_for_delete = self.general_utils.input_number()
+        number_id = UserAccounts.get(Number=number_for_delete)
+        if self.validation_manager.account_number_exists(number_for_delete):
+            self.delete_user_account_from_db(number_for_delete, number_id)
+            self.general_utils.update_global_lists()
+        else:
+            self.remove_user_account()
+
+    @staticmethod
+    def delete_user_account_from_db(number: str, number_id: int) -> None:
+        db_manager.delete(UserAccounts, "Number", number)
+        db_manager.delete(TransactionAll, "Number", number_id)
+        print(f"Рахунок {number} видалено \n")
 
     def user_manager_menu(self, menu_manager):
         list_of_methods = (
@@ -215,3 +226,4 @@ class UserManager:
         )
 
         menu_manager.create_menu(list_of_methods, self.data_store.bank_account)
+

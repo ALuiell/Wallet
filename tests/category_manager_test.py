@@ -5,7 +5,7 @@ from core.category_manager import CategoryManager
 from core.db_config import db_manager
 
 
-class TestCategoryMethods(unittest.TestCase):
+class TestCategoryManager(unittest.TestCase):
 
     def setUp(self):
         self.category_name = "TestCategory"
