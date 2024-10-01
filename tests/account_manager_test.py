@@ -7,24 +7,6 @@ from core.account_manager import AccountManager
 from core.user_manager import UserManager
 
 
-# @classmethod
-# def create_test_accounts(cls):
-#     data = {"Number": "12345678",
-#             "Type": "Дебетовий",
-#             "Name": "Тестовий Новий Користувач",
-#             "Balance": 0}
-#
-#     data2 = {"Number": "23456789",
-#              "Type": "Дебетовий",
-#              "Name": "Тестовий Новий Користувач2",
-#              "Balance": 0}
-#     # create first test user
-#     TestAccountManager.test_account_number = data['Number']
-#     db_manager.create(UserAccounts, data)
-#     # create second test user
-#     TestAccountManager.test_account_number2 = data2['Number']
-#     db_manager.create(UserAccounts, data2)
-
 class TestAccountManager(unittest.TestCase):
     test_account_number = None
     test_account_number2 = None
