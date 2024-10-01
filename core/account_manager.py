@@ -1,9 +1,9 @@
 import re
 import random
-from db_config import db_manager
-from models import UserAccounts, TransactionAll, Category
 from datetime import datetime, timedelta
-from general_utils import GeneralUtils, user_categories
+from core.db_config import db_manager
+from core.models import UserAccounts, TransactionAll, Category
+from core.general_utils import GeneralUtils, user_categories
 
 
 class AccountDataStore:
@@ -137,6 +137,8 @@ class AccountManager:
         self.validation_manager = AccountValidationManager()
         self.utils = AccountManagerUtils()
         self.general_utils = GeneralUtils()
+        self.test_account_number = None
+        self.test_transaction_id = None
 
     @staticmethod
     def update_balance(transaction_type, account_number, amount, is_transaction_cancelled=False):
@@ -151,7 +153,7 @@ class AccountManager:
             else:
                 db_manager.update(UserAccounts, 'Balance', UserAccounts.Balance - amount, 'Number', account_number)
 
-    def add_transaction(self):
+    def add_transaction(self, test=False):
         self.general_utils.show_info_about_all_users()
         trans_id = self.utils.generate_transaction_id()
         account_num = self.general_utils.input_number()
@@ -168,6 +170,10 @@ class AccountManager:
         self.update_balance(transaction_type, account_num, amount)
         print("Транзакція додана: {} | {} | {}\n".format(date, category, transaction_str))
         self.general_utils.display_account_info(account_num)
+        # for test
+        if test:
+            self.test_transaction_id = trans_id
+            self.test_account_number = account_num
 
     def delete_transaction(self):
         self.general_utils.show_info_about_all_users()
@@ -191,6 +197,7 @@ class AccountManager:
             print("Номер одержувача")
             to_num = self.general_utils.input_number()
             transaction_transfer_id = self.utils.generate_transaction_id()
+            self.test_transaction_id = transaction_transfer_id
             date = self.utils.generate_random_date()
             return to_num, from_num, transaction_transfer_id, date
 

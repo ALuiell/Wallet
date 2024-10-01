@@ -183,20 +183,22 @@ class UserManager:
             db_manager.update(UserAccounts, "Type", "Дебетовий", "Number", test_account_number)
             print("Тип рахунку змінено на Дебетовий \n")
 
-    def update_user_name(self, test_account_number=None):
+    def update_user_name(self):
         while True:
             new_name = input("Введіть новий ПІБ: ")
             if self.validation_manager.validate_name(new_name):
-                # for test
-                if test_account_number is None:
-                    db_manager.update(UserAccounts, "Name", new_name, "Number",
-                                      self.data_store.selected_account_number)
-                    self.general_utils.display_account_info(self.data_store.selected_account_number)
-                else:
-                    db_manager.update(UserAccounts, "Name", new_name, "Number",
-                                      test_account_number)
-                    self.general_utils.display_account_info(test_account_number)
+                db_manager.update(UserAccounts, "Name", new_name, "Number",
+                                  self.data_store.selected_account_number)
+                self.general_utils.display_account_info(self.data_store.selected_account_number)
+                print("Інформацію оновлено")
 
+    def update_user_name_for_test(self, test_account_number):
+        while True:
+            new_name = input("Введіть новий ПІБ: ")
+            if self.validation_manager.validate_name(new_name):
+                db_manager.update(UserAccounts, "Name", new_name, "Number",
+                                  test_account_number)
+                self.general_utils.display_account_info(test_account_number)
                 print("Інформацію оновлено")
             return
 
@@ -226,4 +228,3 @@ class UserManager:
         )
 
         menu_manager.create_menu(list_of_methods, self.data_store.bank_account)
-

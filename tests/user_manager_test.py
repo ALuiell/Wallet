@@ -29,7 +29,7 @@ class TestUserManager(unittest.TestCase):
     def test_change_user_account_name(self):
         self.create_test_account()
         with patch('builtins.input', side_effect=[self.name_for_update]):
-            self.user.update_user_name(test_account_number=TestUserManager.test_account_number)
+            self.user.update_user_name_for_test(test_account_number=TestUserManager.test_account_number)
             self.assertTrue(db_manager.verify2(UserAccounts,
                                                [('Number', TestUserManager.test_account_number),
                                                 ('Name', self.name_for_update)]))
