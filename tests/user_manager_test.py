@@ -6,7 +6,7 @@ from core.user_manager import UserManager
 
 
 class TestUserManager(unittest.TestCase):
-    test_account_number = None
+    test_account_number = '12345678'
 
     def setUp(self):
         self.user = UserManager()
@@ -17,8 +17,7 @@ class TestUserManager(unittest.TestCase):
         # type_option='1' debit type, type_option='2' credit type,
 
         with patch('builtins.input', side_effect=[self.name_for_create, type_option]):
-            self.user.create_user_account(test=True)
-            TestUserManager.test_account_number = self.user.test_account_number
+            self.user.create_user_account(TestUserManager.test_account_number)
 
     def test_create_user_account(self):
         self.create_test_account()
@@ -38,7 +37,7 @@ class TestUserManager(unittest.TestCase):
 
     def test_change_user_account_type_on_debit(self):
         self.create_test_account(type_option='2')
-        self.user.update_user_type_on_debit(test_account_number=TestUserManager.test_account_number)
+        self.user.update_user_type_on_debit(account_number=TestUserManager.test_account_number)
         self.assertTrue(db_manager.verify2(UserAccounts,
                                            [('Number', TestUserManager.test_account_number),
                                             ('Type', 'Дебетовий')]))
@@ -47,7 +46,7 @@ class TestUserManager(unittest.TestCase):
 
     def test_change_user_account_type_on_credit(self):
         self.create_test_account()
-        self.user.update_user_type_on_credit(test_account_number=TestUserManager.test_account_number)
+        self.user.update_user_type_on_credit(account_number=TestUserManager.test_account_number)
         self.assertTrue(db_manager.verify2(UserAccounts,
                                            [('Number', TestUserManager.test_account_number),
                                             ('Type', 'Кредитний')]))

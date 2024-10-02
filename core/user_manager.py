@@ -103,22 +103,27 @@ class UserManager:
         self.validation_manager = UserValidationManager()
         self.general_utils = GeneralUtils()
         self.utils = UserManagerUtils()
-        self.test_account_number = None
+        # self.test_account_number = None
 
-    def create_user_account(self, test=False):
-        account_number = self.utils.generate_account_number()
+    def create_user_account(self, account_number=None):
+        # If account_number is not provided, generate a new one
+        if account_number is None:
+            account_number = self.utils.generate_account_number()
+
         account_name = self.utils.input_name()
         account_type = self.utils.input_type()
-        data = {"Number": account_number,
-                "Type": account_type,
-                "Name": account_name,
-                "Balance": 0}
+
+        data = {
+            "Number": account_number,
+            "Type": account_type,
+            "Name": account_name,
+            "Balance": 0
+        }
+
         self.add_new_user_to_db(data)
         self.general_utils.display_account_info(data["Number"])
         self.general_utils.update_global_lists()
         self.general_utils.visual()
-        if test:
-            self.test_account_number = account_number
 
     @staticmethod
     def add_new_user_to_db(data: dict[str, Any]) -> None:
@@ -163,24 +168,24 @@ class UserManager:
         self.general_utils.show_user_type_info(self.data_store.selected_account_number)
         menu_manager.create_menu(list_of_methods, update_menu_type_lst)
 
-    def update_user_type_on_credit(self, menu_manager=None, test_account_number=None):
-        if test_account_number is None:
+    def update_user_type_on_credit(self, menu_manager=None, account_number=None):
+        if account_number is None:
             db_manager.update(UserAccounts, "Type", "Кредитний", "Number", self.data_store.selected_account_number)
             print("Тип рахунку змінено на Кредитний \n")
             self.general_utils.display_account_info(self.data_store.selected_account_number)
             self.display_user_data_update_menu(menu_manager)
         else:
-            db_manager.update(UserAccounts, "Type", "Кредитний", "Number", test_account_number)
+            db_manager.update(UserAccounts, "Type", "Кредитний", "Number", account_number)
             print("Тип рахунку змінено на Кредитний \n")
 
-    def update_user_type_on_debit(self, menu_manager=None, test_account_number=None):
-        if test_account_number is None:
+    def update_user_type_on_debit(self, menu_manager=None, account_number=None):
+        if account_number is None:
             db_manager.update(UserAccounts, "Type", "Дебетовий", "Number", self.data_store.selected_account_number)
             print("Тип рахунку змінено на Дебетовий \n")
             self.general_utils.display_account_info(self.data_store.selected_account_number)
             self.display_user_data_update_menu(menu_manager)
         else:
-            db_manager.update(UserAccounts, "Type", "Дебетовий", "Number", test_account_number)
+            db_manager.update(UserAccounts, "Type", "Дебетовий", "Number", account_number)
             print("Тип рахунку змінено на Дебетовий \n")
 
     def update_user_name(self):

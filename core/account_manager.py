@@ -137,8 +137,6 @@ class AccountManager:
         self.validation_manager = AccountValidationManager()
         self.utils = AccountManagerUtils()
         self.general_utils = GeneralUtils()
-        self.test_account_number = None
-        self.test_transaction_id = None
 
     @staticmethod
     def update_balance(transaction_type, account_number, amount, is_transaction_cancelled=False):
@@ -153,27 +151,24 @@ class AccountManager:
             else:
                 db_manager.update(UserAccounts, 'Balance', UserAccounts.Balance - amount, 'Number', account_number)
 
-    def add_transaction(self, test=False):
+    def add_transaction(self, account_number=None, transaction_id=None):
+        if account_number is None and transaction_id is None:
+            account_number = self.general_utils.input_number()
+            transaction_id = self.utils.generate_transaction_id()
         self.general_utils.show_info_about_all_users()
-        trans_id = self.utils.generate_transaction_id()
-        account_num = self.general_utils.input_number()
-        self.general_utils.display_balance(account_num)
+        self.general_utils.display_balance(account_number)
         date, category, amount, transaction_type, transaction_str = self.validation_manager.validate_money_input()
-        num_id, cat_id = UserAccounts.get(Number=account_num), Category.get(Name=category)
+        num_id, cat_id = UserAccounts.get(Number=account_number), Category.get(Name=category)
         db_manager.create(TransactionAll, {"Number": num_id,
                                            "Type": transaction_type,
                                            "Category": cat_id,
                                            "Date": date,
-                                           "TransactionID": trans_id,
+                                           "TransactionID": transaction_id,
                                            "Amount": amount})
 
-        self.update_balance(transaction_type, account_num, amount)
+        self.update_balance(transaction_type, account_number, amount)
         print("Транзакція додана: {} | {} | {}\n".format(date, category, transaction_str))
-        self.general_utils.display_account_info(account_num)
-        # for test
-        if test:
-            self.test_transaction_id = trans_id
-            self.test_account_number = account_num
+        self.general_utils.display_account_info(account_number)
 
     def delete_transaction(self):
         self.general_utils.show_info_about_all_users()
@@ -186,8 +181,8 @@ class AccountManager:
             db_manager.delete(TransactionAll, "TransactionID", transaction_id)
             print("Транзакція видалено успішно, баланс оновлено.")
 
-    def transaction_transfer(self):
-        def get_transfer_info():
+    def transaction_transfer(self, transaction_id=None):
+        def get_info_about_numbers():
             self.general_utils.display_number_and_balance()
             print("Номер відправника")
             from_num = self.general_utils.input_number()
@@ -196,10 +191,7 @@ class AccountManager:
             print()
             print("Номер одержувача")
             to_num = self.general_utils.input_number()
-            transaction_transfer_id = self.utils.generate_transaction_id()
-            self.test_transaction_id = transaction_transfer_id
-            date = self.utils.generate_random_date()
-            return to_num, from_num, transaction_transfer_id, date
+            return to_num, from_num
 
         def validate_transfer(account_object):
             if account_object.Balance != 0:
@@ -239,7 +231,11 @@ class AccountManager:
             print("Транзакція пройшла успішно")
             print(f"Відправник: {from_user_object.Name} | Отримувач: {to_user_object.Name}")
 
-        to_number, from_number, transaction_id, transaction_date = get_transfer_info()
+        if transaction_id is None:
+            transaction_id = self.utils.generate_transaction_id()
+
+        transaction_date = self.utils.generate_random_date()
+        to_number, from_number = get_info_about_numbers()
         from_user_object, to_user_object, category_id = get_objects()
         amount = validate_transfer(from_user_object)
         create_transaction()
